@@ -98,7 +98,7 @@ def try_to_find_builtins():
 
         """
 
-        if cl is try_to_find_builtins:  # recursivness
+        if getattr(cl, "__name__", None) == "try_to_find_builtins":  # recursivness
             return
         # First yield the class itself
         classname = classname if classname else "{}.{}".format(cl.__module__,
