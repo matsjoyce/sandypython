@@ -1,4 +1,4 @@
-class Mod:
+class FakeMod:
     def __getattr__(self, name):
         try:
             return self.__dict__["__getattr__"](name)
@@ -7,7 +7,7 @@ class Mod:
 
 
 def make_fake_mod(mod_dict):
-    mod = Mod()
+    mod = FakeMod()
 
     def getitem(name):
         if name in mod_dict:

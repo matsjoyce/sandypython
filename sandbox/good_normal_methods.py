@@ -35,16 +35,14 @@ methods += ["deleter", "getter", "setter", "fdel", "fget", "fset"]
 # SyntaxError stuff
 methods += ["lineno", "text", "msg", "filename", "print_file_and_line",
             "offset"]
-# ImportError stuff
-methods += ["name", "path"]
 # OSError stuff
 methods += ["errno", "strerror", "filename2", "characters_written"]
 # BaseException stuff
 methods += ["args", "with_traceback"]
 # UnicodeErrors stuff
 methods += ["reason", "encoding", "end", "object"]
-# SystemExit, StopIteration
-methods += ["code", "value"]
+# SystemExit, StopIteration, IOError
+methods += ["code", "value", "name", "path"]
 # frozen import lib
 methods += ["find_module", "find_spec", "get_code", "get_source", "is_package",
             "load_module", "module_repr"]

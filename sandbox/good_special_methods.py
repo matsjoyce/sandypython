@@ -9,7 +9,7 @@ methods += ["init", "new", "del"]
 methods += ["str", "repr", "format"]
 # container
 methods += ["len", "getitem", "setitem", "delitem", "iter", "reversed",
-            "contains", "hash", "length_hint"]
+            "contains", "hash", "length_hint", "sizeof"]
 # arithmetic
 methods += ["add", "sub", "mul", "truediv", "floordiv", "mod", "divmod",
             "pow", "lshift", "rshift", "and", "or", "xor"]
@@ -26,8 +26,6 @@ methods += ["next"]
 methods += ["reduce", "reduce_ex", "setstate", "getnewargs"]
 # access
 methods += ["setattr", "delattr", "getattribute"]
-# size
-methods += ["sizeof"]
 # bases
 # methods += ["mro", "abstractmethods", "isabstractmethod", "bases"]
 # exceptions
@@ -49,5 +47,3 @@ methods += ["call"]
 # methods += ["dictoffset", "basicsize", "itemsize", "flags"]
 
 methods = ["__%s__" % i for i in methods]
-# methods += ["co_filename", "co_name", "f_lineno"]
-# methods += ["f_back"]  # needed for logging
