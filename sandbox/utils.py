@@ -47,6 +47,8 @@ def get_type_name(t):
 
 
 def type_checker(**kwargs):
+    from .spec import getsattr
+
     def decorator(func):
         args_names = inspect.getargspec(func)[0]
 
@@ -61,11 +63,11 @@ def type_checker(**kwargs):
                 if fv is None:
                     if t is None:
                         good = True
-                    elif t.__class__ is tuple:
+                    elif getsattr(t, "__class__") is tuple:
                         good = None in t
-                elif t.__class__ is tuple:
+                elif getsattr(t, "__class__") is tuple:
                     good = type(fv) in t
-                elif t.__class__ is type:
+                elif getsattr(t, "__class__") is type:
                     good = type(fv) is t
                 if not good:
                     types = (f, get_type_name(t), get_type_name(fv))

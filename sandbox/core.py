@@ -11,6 +11,9 @@ added_to_execgs = []
 started = False
 env_name = "__sand__"
 
+_on_start = []
+_on_end = []
+
 sys.setrecursionlimit(500)
 
 
@@ -86,6 +89,8 @@ def add_to_exec_globals(name, obj):
 def start_sandbox():
     global started
     if not started:
+        for i in _on_start:
+            i()
         spec.remove_dangerous_attrs()
         save_restricted()
         replace_restricted()
@@ -98,6 +103,8 @@ def end_sandbox():
         try:
             restore_restricted()
             spec.replace_dangerous_attrs()
+            for i in _on_end:
+                i()
         except Exception as e:
             find_builtin("print")(e)
             find_builtin("exit")()
@@ -129,3 +136,11 @@ def detamper_builtins():
 
 def find_builtin(name):
     return builtins_copy[name]
+
+
+def on_start(f):
+    _on_start.append(f)
+
+
+def on_end(f):
+    _on_end.append(f)

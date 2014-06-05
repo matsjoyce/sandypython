@@ -77,7 +77,7 @@ def try_to_find_builtins():
         if hasattr(v, "__name__"):
             if v.__name__ in wanted_funcs:
                 if v.__name__ == "code" and \
-                        v.__class__.__name__ == "member_descriptor":
+                        type(v).__name__ == "member_descriptor":
                     pass
                 else:
                     return "v.__name__ = {}".format(v.__name__)
@@ -265,7 +265,7 @@ def try_to_mess_with_str():
 
 def try_mugging():
     import a_mod
-    warnings = a_mod.__class__('warnings')
+    warnings = type(a_mod)('warnings')
 
     # Fill it with deception
     warnings.default_action = "ignore"

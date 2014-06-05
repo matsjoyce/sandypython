@@ -87,37 +87,34 @@ for i in type_list:
 del type_list
 dangerous = [i for i in methods if dangerous_f(i)]
 
-
-def get_dict_func():
-    get_dict = ctypes.pythonapi._PyObject_GetDictPtr
-    get_dict.restype = ctypes.POINTER(ctypes.py_object)
-    get_dict.argtypes = [ctypes.py_object]
-
-    def dictionary_of(ob):
-        dptr = get_dict(ob)
-        if dptr and dptr.contents:
-            return dptr.contents.value
-    return dictionary_of
-
-import sys
-import ctypes
-dictionary_of = get_dict_func()
-sys.get_func_closure = dictionary_of(types.FunctionType)['__closure__'].__get__
-sys.get_func_code = dictionary_of(types.FunctionType)['__code__'].__get__
-sys.get_func_globals = dictionary_of(types.FunctionType)['__globals__'].__get__
+get_mro = dictionary_of(type)['__mro__'].__get__
 
 saved = {}
+
+
+def getsattr(obj, name, type_=None):
+    if type_ is None:
+        type_ = type(obj)
+    for t in list(get_mro(type_)) + [type]:
+        if (t, name) in saved:
+            return saved[(t, name)].__get__(obj)
+        if hasattr(obj, name):
+            return getattr(obj, name)
+
+not_expressed = defaultdict(list)
 
 
 def remove_dangerous_attrs():
     for i in dangerous:
         for j in method_origin[i]:
+            if not hasattr(j, i):
+                not_expressed[j].append(i)
             saved[(j, i)] = dictionary_of(j)[i]
             del dictionary_of(j)[i]
             # make sure our modifications is mirrored in the types we modify
             # this is a specialised purpose
             sys._clear_type_cache()
-            assert not hasattr(j, i)
+            assert not hasattr(j, i), "{} still has {}".format(j, i)
 
 
 def replace_dangerous_attrs():
@@ -127,7 +124,10 @@ def replace_dangerous_attrs():
             # make sure our modifications is mirrored in the types we modify
             # this is a specialised purpose
             sys._clear_type_cache()
-            assert hasattr(j, i)
+            if i in not_expressed[j]:
+                assert i in j.__dict__, "{} still doesn't' have {}".format(j, i)
+            else:
+                assert hasattr(j, i), "{} still doesn't' have {}".format(j, i)
 
 if __name__ == "__main__":
     print("Found", len(methods), "methods")

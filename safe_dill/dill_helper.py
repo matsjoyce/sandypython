@@ -2,6 +2,8 @@ import sandbox
 from . import pickle, dill
 from .safe_dill import safe_modules
 
+old_getsattr = dill.getsattr
+
 
 @sandbox.check_builtins
 def save():
@@ -47,3 +49,11 @@ def load():
         exec_globs = unpickler.load()
 
         sandbox.core.exec_globals.update(exec_globs)
+
+
+def set_getsattr():
+    dill.getsattr = sandbox.getsattr
+
+
+def unset_getsattr():
+    dill.getsattr = old_getsattr
