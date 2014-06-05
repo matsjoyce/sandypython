@@ -83,7 +83,8 @@ def replace_dangerous_attrs():
             # this is a specialised purpose
             sys._clear_type_cache()
             if i in not_expressed[j]:
-                assert i in j.__dict__, "{} still doesn't' have {}".format(j, i)
+                assert i in j.__dict__, "{} still doesn't' have {}" \
+                    .format(j, i)
             else:
                 assert hasattr(j, i), "{} still doesn't' have {}".format(j, i)
 

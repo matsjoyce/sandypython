@@ -97,8 +97,8 @@ def try_to_find_builtins():
         Yields (obj, description) tuples.
 
         """
-
-        if getattr(cl, "__name__", None) == "try_to_find_builtins":  # recursivness
+        # recursivness
+        if getattr(cl, "__name__", None) == "try_to_find_builtins":
             return
         # First yield the class itself
         classname = classname if classname else "{}.{}".format(cl.__module__,
