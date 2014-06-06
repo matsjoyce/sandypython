@@ -8,23 +8,22 @@ cols = {i: j for i, j in zip(("black", "red", "green", "yellow", "blue",
 
 
 def colorf(*args, color="green"):
-    str_conv = []
-    for i in args:
-        try:
-            str_conv.append(str(i))
-        except:
-            pass
-    s = " ".join(str_conv)
+    s = " ".join([str(i) for i in args])
     s = "\033[1;%dm%s\033[1;m" % (cols[color], s)
     return s
 
 
 class DeactivateSandbox:
     def __enter__(self):
-        core.end_sandbox()
+        if core.started:
+            core.end_sandbox()
+            self.reinit = True
+        else:
+            self.reinit = False
 
     def __exit__(self, type, value, traceback):
-        core.start_sandbox()
+        if self.reinit:
+            core.start_sandbox()
 
 
 class ActivateSandbox:
@@ -54,6 +53,10 @@ def get_type_name(t):
         return "'%s'" % t.__name__
 
 
+class Any:
+    pass
+
+
 def type_checker(**kwargs):
     from .spec import getsattr
 
@@ -67,6 +70,8 @@ def type_checker(**kwargs):
 
             for f, fv in fkwargs.items():
                 t = kwargs[f]
+                if t is Any:
+                    continue
                 good = None
                 if fv is None:
                     if t is None:

@@ -88,27 +88,11 @@ def replace_dangerous_attrs():
             else:
                 assert hasattr(j, i), "{} still doesn't' have {}".format(j, i)
 
-if __name__ == "__main__":
-    import _frozen_importlib
+
+def stats():
     print("Found", len(methods), "methods")
     print(len(dangerous), "marked for removal")
     print(len(good_methods), "marked as good")
 
-    print()
-    for i in sorted(dangerous):
-        print(i, "is implemented by",
-              ", ".join([str(j) for j in method_origin[i]]))
-
-    remove_dangerous_attrs()
-
-    try:
-        types.FunctionType.__code__
-    except Exception as e:
-        print(e)
-
-    try:
-        TypeError().tb_frame
-    except Exception as e:
-        print(e)
-
-    replace_dangerous_attrs()
+if __name__ == "__main__":
+    stats()

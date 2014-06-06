@@ -44,29 +44,20 @@ def replace_builtin(name, obj):
 
 def save_restricted():
     for module, name in restricted:
-        try:
-            restricted[(module, name)] = getattr(sys.modules[module], name)
-            delattr(sys.modules[module], name)
-        except Exception as e:
-            pass
+        restricted[(module, name)] = getattr(sys.modules[module], name)
+        delattr(sys.modules[module], name)
 
 
 def restore_restricted():
     for stuff, obj in restricted.items():
         module, name = stuff
-        try:
-            setattr(sys.modules[module], name, obj)
-        except Exception as e:
-            raise e
+        setattr(sys.modules[module], name, obj)
 
 
 def replace_restricted():
     for stuff, obj in replaced.items():
         module, name = stuff
-        try:
-            setattr(sys.modules[module], name, obj)
-        except Exception as e:
-            pass
+        setattr(sys.modules[module], name, obj)
 
 
 def clean_exec_globals():
@@ -100,16 +91,11 @@ def start_sandbox():
 def end_sandbox():
     global started
     if started:
-        try:
-            restore_restricted()
-            spec.replace_dangerous_attrs()
-            for i in _on_end:
-                i()
-        except Exception as e:
-            find_builtin("print")(e)
-            find_builtin("exit")()
-        else:
-            started = False
+        restore_restricted()
+        spec.replace_dangerous_attrs()
+        for i in _on_end:
+            i()
+        started = False
 
 
 def exec_str(code_str):
@@ -124,7 +110,8 @@ def detamper_builtins():
     if started:
         __builtins__[str_string] = builtins_copy[str_string]
         for i, j in list(__builtins__.items()):
-            if i not in builtins_copy:
+            if i not in builtins_copy or ("builtins", i) in restricted \
+               and ("builtins", i) not in replaced:
                 del __builtins__[i]
             elif builtins_copy[i] is not j:
                 if ("builtins", i) in replaced:

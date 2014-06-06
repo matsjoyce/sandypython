@@ -20,6 +20,8 @@ def _import_module(import_name, safe=False):
         module = import_name
         obj = ""
     if module not in safe_modules:
+        if safe:
+            return
         raise ImportError("'%s' is restricted" % module)
     try:
         if obj:
