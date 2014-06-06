@@ -15,11 +15,8 @@ def colorf(*args, color="green"):
 
 class DeactivateSandbox:
     def __enter__(self):
-        if core.started:
-            core.end_sandbox()
-            self.reinit = True
-        else:
-            self.reinit = False
+        self.reinit = core.started
+        core.end_sandbox()
 
     def __exit__(self, type, value, traceback):
         if self.reinit:
@@ -49,12 +46,21 @@ def get_type_name(t):
                 + " or %s" % get_type_name(t[-1]))
     if not isinstance(t, type):
         t = type(t)
-    if hasattr(t, "__name__"):
-        return "'%s'" % t.__name__
+    return "'%s'" % t.__name__
 
 
 class Any:
     pass
+
+
+def check(fv, t, getsattr):
+    if fv is None:
+        if t is None:
+            return True
+        return getsattr(t, "__class__") is tuple and None in t
+    elif getsattr(t, "__class__") is tuple:
+        return type(fv) in t
+    return getsattr(t, "__class__") is type and type(fv) is t
 
 
 def type_checker(**kwargs):
@@ -72,17 +78,7 @@ def type_checker(**kwargs):
                 t = kwargs[f]
                 if t is Any:
                     continue
-                good = None
-                if fv is None:
-                    if t is None:
-                        good = True
-                    elif getsattr(t, "__class__") is tuple:
-                        good = None in t
-                elif getsattr(t, "__class__") is tuple:
-                    good = type(fv) in t
-                elif getsattr(t, "__class__") is type:
-                    good = type(fv) is t
-                if not good:
+                if not check(fv, t, getsattr):
                     types = (f, get_type_name(t), get_type_name(fv))
                     raise TypeError("The argument for '%s' has to be a %s,"
                                     " not a %s" % types)

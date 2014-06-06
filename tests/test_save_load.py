@@ -59,21 +59,27 @@ class TestSaveLoad(unittest.TestCase):
     def setup_globs(self):
         sandbox.add_to_exec_globals("load", safe_dill.load)
         sandbox.add_to_exec_globals("save", safe_dill.save)
-        imp_map = {"default": ["a_mod", "__sand__"]}
-        sandbox.replace_builtin("__import__", sandbox.checked_importer(imp_map))
+        imap = {"default": ["a_mod", "__sand__"]}
+        sandbox.replace_builtin("__import__", sandbox.checked_importer(imap))
 
     def test_save_load(self):
         self.setup_globs()
         with sandbox.ActivateSandbox():
             sandbox.exec_str(prog)
 
-        sandbox.clean_exec_globals()
-        self.setup_globs()
+            with sandbox.DeactivateSandbox():
+                sandbox.clean_exec_globals()
+                self.setup_globs()
 
-        with sandbox.ActivateSandbox():
             sandbox.exec_str(prog2)
+            try:
+                self.setUp.__globals__
+            except:
+                pass
+            else:
+                self.fail()
 
         self.assertEqual(sandbox.core.exec_globals["c"], 5)
         self.assertEqual(sandbox.core.exec_globals["a_mod"].a, 120)
-        self.assertEqual(sandbox.core.exec_globals["__sand__"].a, sandbox.core.exec_globals["a"])
-
+        self.assertEqual(sandbox.core.exec_globals["__sand__"].a,
+                         sandbox.core.exec_globals["a"])

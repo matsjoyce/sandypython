@@ -17,6 +17,7 @@ class TestSafeDillImp(unittest.TestCase):
         with self.assertRaises(ImportError):
             f("safe_dill.dill.sys")
         self.assertEqual(f("functools", safe=True), None)
+        self.assertEqual(f("os.os", safe=True), None)
 
     def tearDown(self):
         safe_dill.set_safe_modules([])

@@ -30,8 +30,8 @@ get_dict.argtypes = [ctypes.py_object]
 
 def dictionary_of(ob):
     dptr = get_dict(ob)
-    if dptr and dptr.contents:
-        return dptr.contents.value
+    assert dptr and dptr.contents
+    return dptr.contents.value
 
 methods = set()
 method_origin = {}
@@ -50,14 +50,13 @@ get_mro = dictionary_of(type)["__mro__"].__get__
 saved = {}
 
 
-def getsattr(obj, name, type_=None):
-    if type_ is None:
-        type_ = type(obj)
-    for t in list(get_mro(type_)) + [type]:
+def getsattr(obj, name):
+    if hasattr(obj, name):
+        return getattr(obj, name)
+    for t in list(get_mro(type(obj))) + [type]:
         if (t, name) in saved:
             return saved[(t, name)].__get__(obj)
-        if hasattr(obj, name):
-            return getattr(obj, name)
+    return getattr(obj, name)  # let it make the error message
 
 not_expressed = defaultdict(list)
 

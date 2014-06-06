@@ -11,6 +11,8 @@ class TestTypeChecker(unittest.TestCase):
     def test_type_checker(self):
         self.f(0, "", "")  # should work
 
+        self.f(None, "", "")  # should work
+
         with self.assertRaises(TypeError):
             self.f(0, 0, "")
 
@@ -27,6 +29,6 @@ class TestTypeChecker(unittest.TestCase):
             self.f("", b="bear", c="sandbag")
 
         with self.assertRaises(TypeError):
-            self.f("", "", d=1)
+            self.f([], "", d=1)
 
         self.f({}, b="box", c=" of sand")  # should work
