@@ -19,11 +19,13 @@ def _import_module(import_name, safe=False):
     else:
         module = import_name
         obj = ""
+    if module not in safe_modules:
+        raise ImportError("'%s' is restricted" % module)
     try:
         if obj:
             return getattr(__import__(module, None, None, [obj]), obj)
         else:
-            return __import__(import_name)
+            return __import__(module)
     except (ImportError, AttributeError):
         if not safe:
             raise
