@@ -27,6 +27,14 @@ class DeactivateSandbox:
         core.start_sandbox()
 
 
+class ActivateSandbox:
+    def __enter__(self):
+        core.start_sandbox()
+
+    def __exit__(self, type, value, traceback):
+        core.end_sandbox()
+
+
 def check_builtins(func):
     def check_builtins_wrapper(*args, **kwargs):
         core.detamper_builtins()
