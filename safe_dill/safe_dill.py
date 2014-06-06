@@ -13,8 +13,8 @@ def _import_module(import_name, safe=False):
     if import_name in safe_names:
         return safe_names[import_name]
     if "." in import_name:
-        items = import_name.split('.')
-        module = '.'.join(items[:-1])
+        items = import_name.split(".")
+        module = ".".join(items[:-1])
         obj = items[-1]
     else:
         module = import_name

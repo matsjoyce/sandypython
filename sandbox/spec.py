@@ -45,7 +45,7 @@ for i in type_list:
 del type_list
 dangerous = [i for i in methods if i not in good_methods]
 
-get_mro = dictionary_of(type)['__mro__'].__get__
+get_mro = dictionary_of(type)["__mro__"].__get__
 
 saved = {}
 
