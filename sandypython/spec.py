@@ -10,6 +10,9 @@ except:
     import good_special_methods
     import good_normal_methods
 
+__all__ = ["getsattr", "remove_dangerous_attrs", "replace_dangerous_attrs",
+           "stats"]
+
 good_methods = []
 good_methods += good_special_methods.methods
 good_methods += good_normal_methods.methods

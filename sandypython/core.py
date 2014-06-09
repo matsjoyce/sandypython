@@ -2,6 +2,11 @@ import sys
 from . import spec
 from .fakemod import make_fake_mod
 
+__all__ = ["restrict", "allow", "replace", "allow_builtin", "allow_defaults",
+           "replace_builtin", "add_to_exec_globals", "start_sandbox",
+           "end_sandbox", "exec_str", "detamper_builtins", "on_start",
+           "on_end", "reset"]
+
 builtins_copy = __builtins__.copy()
 restricted = {}
 replaced = {}
