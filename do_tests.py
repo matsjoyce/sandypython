@@ -1,5 +1,7 @@
 # /bin/python3
 import sys
+import os
+sys.path.append(os.path.abspath('../'))
 import unittest
 from sandypython import spec
 spec.dangerous.remove("f_globals")
