@@ -25,10 +25,12 @@ class DeactivateSandbox:
 
 class ActivateSandbox:
     def __enter__(self):
+        self.end = not core.started
         core.start_sandbox()
 
     def __exit__(self, type, value, traceback):
-        core.end_sandbox()
+        if self.end:
+            core.end_sandbox()
 
 
 def check_builtins(func):

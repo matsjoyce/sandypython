@@ -1,5 +1,5 @@
 import unittest
-from sandbox.fakemod import make_fake_mod
+from sandypython.fakemod import make_fake_mod
 
 
 class TestFakeMod(unittest.TestCase):

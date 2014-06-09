@@ -49,8 +49,8 @@ def try_to_find_builtins():
 
     wanted_funcs = ("open", "__import__", "exec", "compile", "system",
                     "print", "quit", "eval", "code", "end_sandbox")
-    unwanted_modules = ("builtins", __name__, None, "sandbox.fakemod",
-                        "sandbox.utils", "copyreg", "a_mod",
+    unwanted_modules = ("builtins", __name__, None, "sandypython.fakemod",
+                        "sandypython.utils", "copyreg", "a_mod",
                         "__main__", "bad_module")
     constructer_args = [(), (4), (1), ("x",), ("x", "y"), ("x", "y", "z"),
                         ("utf8",), ("os",), ("sys",), ("io",), (1, 2, 3),

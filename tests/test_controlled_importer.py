@@ -1,5 +1,5 @@
 import unittest
-import sandbox
+import sandypython
 
 
 class TestControlledImporter(unittest.TestCase):
@@ -7,7 +7,7 @@ class TestControlledImporter(unittest.TestCase):
         imap = {"default": ["sys", "io"],
                 "test_controlled_importer.py": ["os"]
                 }
-        f = sandbox.checked_importer(imap, noise=True)
+        f = sandypython.utils.checked_importer(imap, noise=True)
         f("sys")
         f("io")
         f("os")
@@ -18,7 +18,7 @@ class TestControlledImporter(unittest.TestCase):
         imap = {"default": ["sys", "io"],
                 "test_controlled_importer.py": ["os"]
                 }
-        f = sandbox.checked_importer(imap)
+        f = sandypython.utils.checked_importer(imap)
         f("sys")
         f("io")
         f("os")

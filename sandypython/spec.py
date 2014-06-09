@@ -50,7 +50,7 @@ get_mro = dictionary_of(type)["__mro__"].__get__
 saved = {}
 
 
-def getsattr(obj, name):
+def getsattr(obj, name, getattr=getattr):
     if hasattr(obj, name):
         return getattr(obj, name)
     for t in list(get_mro(type(obj))) + [type]:

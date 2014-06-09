@@ -1,7 +1,7 @@
 # /bin/python3
 import sys
 import unittest
-from sandbox import spec
+from sandypython import spec
 spec.dangerous.remove("f_globals")
 spec.dangerous.remove("f_code")
 spec.dangerous.remove("tb_frame")

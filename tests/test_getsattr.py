@@ -1,17 +1,21 @@
 import unittest
-import sandbox.spec as spec
-from sandbox import ActivateSandbox
+from sandypython.spec import getsattr
+from sandypython.core import allow_defaults, reset
+from sandypython.utils import ActivateSandbox
 
 
 class TestGetsattr(unittest.TestCase):
-    def a(self):
-        pass
+    def setUp(self):
+        allow_defaults()
 
     def test_getsattr(self):
-        f = self.a.__class__
-        self.assertEqual(f, spec.getsattr(self.a, "__class__"))
+        f = self.setUp.__class__
         with ActivateSandbox():
-            self.assertEqual(f, spec.getsattr(self.a, "__class__"))
-        self.assertEqual(f, spec.getsattr(self.a, "__class__"))
+            x = getsattr(self.setUp, "__class__")
+        self.assertEqual(f, x)
+        self.assertEqual(f, getsattr(self.setUp, "__class__"))
         with self.assertRaises(AttributeError):
-            self.assertEqual(f, spec.getsattr(self.a, "_class__"))
+            self.assertEqual(f, getsattr(self.setUp, "_class__"))
+
+    def tearDown(self):
+        reset()

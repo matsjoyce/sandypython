@@ -1,28 +1,30 @@
-import sandbox
+from .. import core
+from ..utils import check_builtins
+from ..spec import getsattr
 from . import pickle, dill
 from .safe_dill import safe_modules
 
 old_getsattr = dill.getsattr
 
 
-@sandbox.check_builtins
+@check_builtins
 def save():
-    with sandbox.find_builtin("open")("/tmp/sand.pkl", "wb") as f:
+    with core.find_builtin("open")("/tmp/sand.pkl", "wb") as f:
         pickler = dill.Pickler(f, 4)
-        pickler._main_module = sandbox.core.exec_mod
+        pickler._main_module = core.exec_mod
         pickler._byref = False
         pickler._session = False
 
-        exec_globs_cpy = sandbox.core.exec_globals.copy()
-        a = set(list(sandbox.core.exec_globals.keys()))
-        sandbox.core.exec_globals.pop("__builtins__")
-        sandbox.core.exec_globals.pop("__sand__")
-        for i in sandbox.core.added_to_execgs:
-            sandbox.core.exec_globals.pop(i)
+        exec_globs_cpy = core.exec_globals.copy()
+        a = set(list(core.exec_globals.keys()))
+        core.exec_globals.pop("__builtins__")
+        core.exec_globals.pop("__sand__")
+        for i in core.added_to_execgs:
+            core.exec_globals.pop(i)
 
-        pickler.dump(sandbox.core.exec_globals)
+        pickler.dump(core.exec_globals)
 
-        sandbox.core.exec_globals.update(exec_globs_cpy)
+        core.exec_globals.update(exec_globs_cpy)
 
 
 class HackedUnpickler(pickle._Unpickler):
@@ -39,20 +41,20 @@ class HackedUnpickler(pickle._Unpickler):
     pickle._Unpickler.dispatch[pickle.EMPTY_DICT[0]] = load_empty_dictionary
 
 
-@sandbox.check_builtins
+@check_builtins
 def load():
-    with sandbox.find_builtin("open")("/tmp/sand.pkl", "rb") as f:
-        unpickler = HackedUnpickler(sandbox.core.exec_globals, f)
-        unpickler._main_module = sandbox.core.exec_mod
+    with core.find_builtin("open")("/tmp/sand.pkl", "rb") as f:
+        unpickler = HackedUnpickler(core.exec_globals, f)
+        unpickler._main_module = core.exec_mod
         unpickler._session = False
 
         exec_globs = unpickler.load()
 
-        sandbox.core.exec_globals.update(exec_globs)
+        core.exec_globals.update(exec_globs)
 
 
 def set_getsattr():
-    dill.getsattr = sandbox.getsattr
+    dill.getsattr = getsattr
 
 
 def unset_getsattr():

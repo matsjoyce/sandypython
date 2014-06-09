@@ -1,6 +1,6 @@
 coverage run -p --branch do_tests.py
-coverage run -p --branch sandbox/spec.py
+coverage run -p --branch sandypython/spec.py
 coverage combine
-coverage html --omit='safe_dill/dill.py,safe_dill/pickle.py,tests/*'
+coverage html --omit='sandypython/safe_dill/dill.py,sandypython/safe_dill/pickle.py,tests/*,doc/*'
 coverage erase
 pep8 .

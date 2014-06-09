@@ -11,6 +11,40 @@ added_to_execgs = []
 started = False
 env_name = "__sand__"
 
+default_allow = ["ArithmeticError", "AssertionError", "AttributeError",
+                 "BaseException", "BlockingIOError", "BrokenPipeError",
+                 "BufferError", "BytesWarning", "ChildProcessError",
+                 "ConnectionAbortedError", "ConnectionError",
+                 "ConnectionRefusedError", "ConnectionResetError",
+                 "DeprecationWarning", "EOFError", "Ellipsis",
+                 "EnvironmentError", "Exception", "False", "FileExistsError",
+                 "FileNotFoundError", "FloatingPointError", "FutureWarning",
+                 "GeneratorExit", "IOError", "ImportError", "ImportWarning",
+                 "IndentationError", "IndexError", "InterruptedError",
+                 "IsADirectoryError", "KeyError", "KeyboardInterrupt",
+                 "LookupError", "MemoryError", "NameError", "None",
+                 "NotADirectoryError", "NotImplemented", "NotImplementedError",
+                 "OSError", "OverflowError", "PendingDeprecationWarning",
+                 "PermissionError", "ProcessLookupError", "ReferenceError",
+                 "ResourceWarning", "RuntimeError", "RuntimeWarning",
+                 "StopIteration", "SyntaxError", "SyntaxWarning",
+                 "SystemError", "SystemExit", "TabError", "TimeoutError",
+                 "True", "TypeError", "UnboundLocalError",
+                 "UnicodeDecodeError", "UnicodeEncodeError", "UnicodeError",
+                 "UnicodeTranslateError", "UnicodeWarning", "UserWarning",
+                 "ValueError", "Warning", "ZeroDivisionError",
+                 "__build_class__", "__debug__", "__doc__", "__name__",
+                 "__package__", "abs", "all", "any", "ascii", "bin", "bool",
+                 "bytearray", "bytes", "callable", "chr", "classmethod",
+                 "complex", "delattr", "dict", "dir", "divmod", "enumerate",
+                 "filter", "float", "format", "frozenset", "getattr",
+                 "globals", "hasattr", "hash", "hex", "id", "int",
+                 "isinstance", "issubclass", "iter", "len", "list", "locals",
+                 "map", "max", "min", "next", "object", "oct", "ord", "pow",
+                 "property", "range", "repr", "reversed", "round", "set",
+                 "setattr", "slice", "sorted", "staticmethod", "str", "sum",
+                 "super", "tuple", "type", "vars", "zip"]
+
 _on_start = []
 _on_end = []
 
@@ -36,6 +70,11 @@ for i in __builtins__:
 
 def allow_builtin(name):
     allow("builtins", name)
+
+
+def allow_defaults():
+    for i in default_allow:
+        allow_builtin(i)
 
 
 def replace_builtin(name, obj):
@@ -106,8 +145,8 @@ str_string = "str"
 builtins_str = "__builtins__"
 
 
-def detamper_builtins():
-    if started:
+def detamper_builtins(force=False):
+    if started or force:
         __builtins__[str_string] = builtins_copy[str_string]
         for i, j in list(__builtins__.items()):
             if i not in builtins_copy or ("builtins", i) in restricted \
@@ -131,3 +170,14 @@ def on_start(f):
 
 def on_end(f):
     _on_end.append(f)
+
+
+def reset():
+    global restricted, replaced, _on_start, _on_end
+    restricted = {}
+    replaced = {}
+    _on_start = []
+    _on_end = []
+    for i in __builtins__:
+        restrict("builtins", i)
+    clean_exec_globals()

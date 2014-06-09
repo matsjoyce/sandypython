@@ -32,17 +32,18 @@ def _import_module(import_name, safe=False):
         if not safe:
             raise
 
-_import_module.__module__ = "safe_dill.dill"
-safe_names["safe_dill.dill._import_module"] = _import_module
+_import_module.__module__ = "sandypython.safe_dill.dill"
+safe_names["sandypython.safe_dill.dill._import_module"] = _import_module
 
 
 def init():
     from . import dill
 
     dill._import_module = _import_module
-    safe_names["safe_dill.dill._unmarshal"] = dill._unmarshal
-    safe_names["safe_dill.dill._create_function"] = dill._create_function
-    safe_names["safe_dill.dill._create_cell"] = dill._create_cell
-    safe_names["safe_dill.dill._eval_repr"] = dill._eval_repr
-    safe_names["safe_dill.dill._load_type"] = dill._load_type
-    safe_names["safe_dill.dill._get_attr"] = dill._get_attr
+    safe_names["sandypython.safe_dill.dill._unmarshal"] = dill._unmarshal
+    safe_names["sandypython.safe_dill.dill._create_function"] = \
+        dill._create_function
+    safe_names["sandypython.safe_dill.dill._create_cell"] = dill._create_cell
+    safe_names["sandypython.safe_dill.dill._eval_repr"] = dill._eval_repr
+    safe_names["sandypython.safe_dill.dill._load_type"] = dill._load_type
+    safe_names["sandypython.safe_dill.dill._get_attr"] = dill._get_attr

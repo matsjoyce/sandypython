@@ -1,10 +1,10 @@
 import unittest
-import sandbox
+from sandypython.utils import type_checker, Any
 
 
 class TestTypeChecker(unittest.TestCase):
-    @sandbox.type_checker(self=sandbox.Any, a=(int, dict, list, None), b=str,
-                          c=str, d=None)
+    @type_checker(self=Any, a=(int, dict, list, None), b=str,
+                  c=str, d=None)
     def f(self, a, b, c="", d=None):
         return str(a) + b + c
 
