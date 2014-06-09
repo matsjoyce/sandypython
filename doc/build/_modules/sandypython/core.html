@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sandypython.core &mdash; SandyPython 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="top" title="SandyPython 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sandypython.core</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">spec</span>
+<span class="kn">from</span> <span class="nn">.fakemod</span> <span class="kn">import</span> <span class="n">make_fake_mod</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;restrict&quot;</span><span class="p">,</span> <span class="s">&quot;allow&quot;</span><span class="p">,</span> <span class="s">&quot;replace&quot;</span><span class="p">,</span> <span class="s">&quot;allow_builtin&quot;</span><span class="p">,</span> <span class="s">&quot;allow_defaults&quot;</span><span class="p">,</span>
+           <span class="s">&quot;replace_builtin&quot;</span><span class="p">,</span> <span class="s">&quot;add_to_exec_globals&quot;</span><span class="p">,</span> <span class="s">&quot;start_sandbox&quot;</span><span class="p">,</span>
+           <span class="s">&quot;end_sandbox&quot;</span><span class="p">,</span> <span class="s">&quot;exec_str&quot;</span><span class="p">,</span> <span class="s">&quot;detamper_builtins&quot;</span><span class="p">,</span> <span class="s">&quot;on_start&quot;</span><span class="p">,</span>
+           <span class="s">&quot;on_end&quot;</span><span class="p">,</span> <span class="s">&quot;reset&quot;</span><span class="p">]</span>
+
+<span class="n">builtins_copy</span> <span class="o">=</span> <span class="n">__builtins__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">restricted</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">replaced</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">exec_globals</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">exec_mod</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">added_to_execgs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">started</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">env_name</span> <span class="o">=</span> <span class="s">&quot;__sand__&quot;</span>
+
+<span class="n">default_allow</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;ArithmeticError&quot;</span><span class="p">,</span> <span class="s">&quot;AssertionError&quot;</span><span class="p">,</span> <span class="s">&quot;AttributeError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;BaseException&quot;</span><span class="p">,</span> <span class="s">&quot;BlockingIOError&quot;</span><span class="p">,</span> <span class="s">&quot;BrokenPipeError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;BufferError&quot;</span><span class="p">,</span> <span class="s">&quot;BytesWarning&quot;</span><span class="p">,</span> <span class="s">&quot;ChildProcessError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;ConnectionAbortedError&quot;</span><span class="p">,</span> <span class="s">&quot;ConnectionError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;ConnectionRefusedError&quot;</span><span class="p">,</span> <span class="s">&quot;ConnectionResetError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;DeprecationWarning&quot;</span><span class="p">,</span> <span class="s">&quot;EOFError&quot;</span><span class="p">,</span> <span class="s">&quot;Ellipsis&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;EnvironmentError&quot;</span><span class="p">,</span> <span class="s">&quot;Exception&quot;</span><span class="p">,</span> <span class="s">&quot;False&quot;</span><span class="p">,</span> <span class="s">&quot;FileExistsError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;FileNotFoundError&quot;</span><span class="p">,</span> <span class="s">&quot;FloatingPointError&quot;</span><span class="p">,</span> <span class="s">&quot;FutureWarning&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;GeneratorExit&quot;</span><span class="p">,</span> <span class="s">&quot;IOError&quot;</span><span class="p">,</span> <span class="s">&quot;ImportError&quot;</span><span class="p">,</span> <span class="s">&quot;ImportWarning&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;IndentationError&quot;</span><span class="p">,</span> <span class="s">&quot;IndexError&quot;</span><span class="p">,</span> <span class="s">&quot;InterruptedError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;IsADirectoryError&quot;</span><span class="p">,</span> <span class="s">&quot;KeyError&quot;</span><span class="p">,</span> <span class="s">&quot;KeyboardInterrupt&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;LookupError&quot;</span><span class="p">,</span> <span class="s">&quot;MemoryError&quot;</span><span class="p">,</span> <span class="s">&quot;NameError&quot;</span><span class="p">,</span> <span class="s">&quot;None&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;NotADirectoryError&quot;</span><span class="p">,</span> <span class="s">&quot;NotImplemented&quot;</span><span class="p">,</span> <span class="s">&quot;NotImplementedError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;OSError&quot;</span><span class="p">,</span> <span class="s">&quot;OverflowError&quot;</span><span class="p">,</span> <span class="s">&quot;PendingDeprecationWarning&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;PermissionError&quot;</span><span class="p">,</span> <span class="s">&quot;ProcessLookupError&quot;</span><span class="p">,</span> <span class="s">&quot;ReferenceError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;ResourceWarning&quot;</span><span class="p">,</span> <span class="s">&quot;RuntimeError&quot;</span><span class="p">,</span> <span class="s">&quot;RuntimeWarning&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;StopIteration&quot;</span><span class="p">,</span> <span class="s">&quot;SyntaxError&quot;</span><span class="p">,</span> <span class="s">&quot;SyntaxWarning&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;SystemError&quot;</span><span class="p">,</span> <span class="s">&quot;SystemExit&quot;</span><span class="p">,</span> <span class="s">&quot;TabError&quot;</span><span class="p">,</span> <span class="s">&quot;TimeoutError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;True&quot;</span><span class="p">,</span> <span class="s">&quot;TypeError&quot;</span><span class="p">,</span> <span class="s">&quot;UnboundLocalError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;UnicodeDecodeError&quot;</span><span class="p">,</span> <span class="s">&quot;UnicodeEncodeError&quot;</span><span class="p">,</span> <span class="s">&quot;UnicodeError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;UnicodeTranslateError&quot;</span><span class="p">,</span> <span class="s">&quot;UnicodeWarning&quot;</span><span class="p">,</span> <span class="s">&quot;UserWarning&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;ValueError&quot;</span><span class="p">,</span> <span class="s">&quot;Warning&quot;</span><span class="p">,</span> <span class="s">&quot;ZeroDivisionError&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;__build_class__&quot;</span><span class="p">,</span> <span class="s">&quot;__debug__&quot;</span><span class="p">,</span> <span class="s">&quot;__doc__&quot;</span><span class="p">,</span> <span class="s">&quot;__name__&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;__package__&quot;</span><span class="p">,</span> <span class="s">&quot;abs&quot;</span><span class="p">,</span> <span class="s">&quot;all&quot;</span><span class="p">,</span> <span class="s">&quot;any&quot;</span><span class="p">,</span> <span class="s">&quot;ascii&quot;</span><span class="p">,</span> <span class="s">&quot;bin&quot;</span><span class="p">,</span> <span class="s">&quot;bool&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;bytearray&quot;</span><span class="p">,</span> <span class="s">&quot;bytes&quot;</span><span class="p">,</span> <span class="s">&quot;callable&quot;</span><span class="p">,</span> <span class="s">&quot;chr&quot;</span><span class="p">,</span> <span class="s">&quot;classmethod&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;complex&quot;</span><span class="p">,</span> <span class="s">&quot;delattr&quot;</span><span class="p">,</span> <span class="s">&quot;dict&quot;</span><span class="p">,</span> <span class="s">&quot;dir&quot;</span><span class="p">,</span> <span class="s">&quot;divmod&quot;</span><span class="p">,</span> <span class="s">&quot;enumerate&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;filter&quot;</span><span class="p">,</span> <span class="s">&quot;float&quot;</span><span class="p">,</span> <span class="s">&quot;format&quot;</span><span class="p">,</span> <span class="s">&quot;frozenset&quot;</span><span class="p">,</span> <span class="s">&quot;getattr&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;globals&quot;</span><span class="p">,</span> <span class="s">&quot;hasattr&quot;</span><span class="p">,</span> <span class="s">&quot;hash&quot;</span><span class="p">,</span> <span class="s">&quot;hex&quot;</span><span class="p">,</span> <span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="s">&quot;int&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;isinstance&quot;</span><span class="p">,</span> <span class="s">&quot;issubclass&quot;</span><span class="p">,</span> <span class="s">&quot;iter&quot;</span><span class="p">,</span> <span class="s">&quot;len&quot;</span><span class="p">,</span> <span class="s">&quot;list&quot;</span><span class="p">,</span> <span class="s">&quot;locals&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;map&quot;</span><span class="p">,</span> <span class="s">&quot;max&quot;</span><span class="p">,</span> <span class="s">&quot;min&quot;</span><span class="p">,</span> <span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="s">&quot;object&quot;</span><span class="p">,</span> <span class="s">&quot;oct&quot;</span><span class="p">,</span> <span class="s">&quot;ord&quot;</span><span class="p">,</span> <span class="s">&quot;pow&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;property&quot;</span><span class="p">,</span> <span class="s">&quot;range&quot;</span><span class="p">,</span> <span class="s">&quot;repr&quot;</span><span class="p">,</span> <span class="s">&quot;reversed&quot;</span><span class="p">,</span> <span class="s">&quot;round&quot;</span><span class="p">,</span> <span class="s">&quot;set&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;setattr&quot;</span><span class="p">,</span> <span class="s">&quot;slice&quot;</span><span class="p">,</span> <span class="s">&quot;sorted&quot;</span><span class="p">,</span> <span class="s">&quot;staticmethod&quot;</span><span class="p">,</span> <span class="s">&quot;str&quot;</span><span class="p">,</span> <span class="s">&quot;sum&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;super&quot;</span><span class="p">,</span> <span class="s">&quot;tuple&quot;</span><span class="p">,</span> <span class="s">&quot;type&quot;</span><span class="p">,</span> <span class="s">&quot;vars&quot;</span><span class="p">,</span> <span class="s">&quot;zip&quot;</span><span class="p">]</span>
+
+<span class="n">_on_start</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">_on_end</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">setrecursionlimit</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="restrict"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.restrict">[docs]</a><span class="k">def</span> <span class="nf">restrict</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="n">restricted</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="allow"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.allow">[docs]</a><span class="k">def</span> <span class="nf">allow</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="n">restricted</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">restricted</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span>
+
+</div>
+<div class="viewcode-block" id="replace"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.replace">[docs]</a><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="n">replaced</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span> <span class="o">=</span> <span class="n">obj</span>
+    <span class="n">restrict</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</div>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">__builtins__</span><span class="p">:</span>
+    <span class="n">restrict</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="allow_builtin"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.allow_builtin">[docs]</a><span class="k">def</span> <span class="nf">allow_builtin</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="n">allow</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="allow_defaults"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.allow_defaults">[docs]</a><span class="k">def</span> <span class="nf">allow_defaults</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">default_allow</span><span class="p">:</span>
+        <span class="n">allow_builtin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="replace_builtin"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.replace_builtin">[docs]</a><span class="k">def</span> <span class="nf">replace_builtin</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="n">replace</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">save_restricted</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">module</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">restricted</span><span class="p">:</span>
+        <span class="n">restricted</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span>
+        <span class="nb">delattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">restore_restricted</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">stuff</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">restricted</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">module</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">stuff</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module</span><span class="p">],</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">replace_restricted</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">stuff</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">replaced</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">module</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">stuff</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module</span><span class="p">],</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">clean_exec_globals</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">exec_globals</span><span class="p">,</span> <span class="n">exec_mod</span>
+    <span class="n">exec_globals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">exec_globals</span><span class="p">[</span><span class="s">&quot;__builtins__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__builtins__</span>
+    <span class="n">exec_globals</span><span class="p">[</span><span class="s">&quot;__name__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">env_name</span>
+    <span class="n">exec_mod</span> <span class="o">=</span> <span class="n">make_fake_mod</span><span class="p">(</span><span class="n">exec_globals</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">env_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">exec_mod</span>
+    <span class="n">exec_globals</span><span class="p">[</span><span class="n">env_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">env_name</span><span class="p">]</span>
+
+<span class="n">clean_exec_globals</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="add_to_exec_globals"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.add_to_exec_globals">[docs]</a><span class="k">def</span> <span class="nf">add_to_exec_globals</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="n">exec_globals</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+    <span class="n">added_to_execgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="start_sandbox"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.start_sandbox">[docs]</a><span class="k">def</span> <span class="nf">start_sandbox</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">started</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">started</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_on_start</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">()</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">remove_dangerous_attrs</span><span class="p">()</span>
+        <span class="n">save_restricted</span><span class="p">()</span>
+        <span class="n">replace_restricted</span><span class="p">()</span>
+        <span class="n">started</span> <span class="o">=</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="end_sandbox"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.end_sandbox">[docs]</a><span class="k">def</span> <span class="nf">end_sandbox</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">started</span>
+    <span class="k">if</span> <span class="n">started</span><span class="p">:</span>
+        <span class="n">restore_restricted</span><span class="p">()</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">replace_dangerous_attrs</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_on_end</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">()</span>
+        <span class="n">started</span> <span class="o">=</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="exec_str"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.exec_str">[docs]</a><span class="k">def</span> <span class="nf">exec_str</span><span class="p">(</span><span class="n">code_str</span><span class="p">):</span>
+    <span class="n">start_sandbox</span><span class="p">()</span>
+    <span class="n">find_builtin</span><span class="p">(</span><span class="s">&quot;exec&quot;</span><span class="p">)(</span><span class="n">code_str</span><span class="p">,</span> <span class="n">exec_globals</span><span class="p">)</span>
+</div>
+<span class="n">str_string</span> <span class="o">=</span> <span class="s">&quot;str&quot;</span>
+<span class="n">builtins_str</span> <span class="o">=</span> <span class="s">&quot;__builtins__&quot;</span>
+
+
+<div class="viewcode-block" id="detamper_builtins"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.detamper_builtins">[docs]</a><span class="k">def</span> <span class="nf">detamper_builtins</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">started</span> <span class="ow">or</span> <span class="n">force</span><span class="p">:</span>
+        <span class="n">__builtins__</span><span class="p">[</span><span class="n">str_string</span><span class="p">]</span> <span class="o">=</span> <span class="n">builtins_copy</span><span class="p">[</span><span class="n">str_string</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">__builtins__</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">builtins_copy</span> <span class="ow">or</span> <span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">restricted</span> \
+               <span class="ow">and</span> <span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">replaced</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">__builtins__</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">builtins_copy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">j</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">replaced</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">replaced</span><span class="p">[(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">j</span><span class="p">:</span>
+                        <span class="n">__builtins__</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">replaced</span><span class="p">[(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">__builtins__</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">builtins_copy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+</div>
+<span class="k">def</span> <span class="nf">find_builtin</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">builtins_copy</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="on_start"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.on_start">[docs]</a><span class="k">def</span> <span class="nf">on_start</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="n">_on_start</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="on_end"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.on_end">[docs]</a><span class="k">def</span> <span class="nf">on_end</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="n">_on_end</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="reset"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.reset">[docs]</a><span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">restricted</span><span class="p">,</span> <span class="n">replaced</span><span class="p">,</span> <span class="n">_on_start</span><span class="p">,</span> <span class="n">_on_end</span>
+    <span class="n">restricted</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">replaced</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_on_start</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_on_end</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">__builtins__</span><span class="p">:</span>
+        <span class="n">restrict</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+    <span class="n">clean_exec_globals</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Matthew Joyce.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

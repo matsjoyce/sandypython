@@ -1,0 +1,193 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sandypython.spec &mdash; SandyPython 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="top" title="SandyPython 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sandypython.spec</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">builtins</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">good_special_methods</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">good_normal_methods</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">good_special_methods</span>
+    <span class="kn">import</span> <span class="nn">good_normal_methods</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;getsattr&quot;</span><span class="p">,</span> <span class="s">&quot;remove_dangerous_attrs&quot;</span><span class="p">,</span> <span class="s">&quot;replace_dangerous_attrs&quot;</span><span class="p">,</span>
+           <span class="s">&quot;stats&quot;</span><span class="p">]</span>
+
+<span class="n">good_methods</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">good_methods</span> <span class="o">+=</span> <span class="n">good_special_methods</span><span class="o">.</span><span class="n">methods</span>
+<span class="n">good_methods</span> <span class="o">+=</span> <span class="n">good_normal_methods</span><span class="o">.</span><span class="n">methods</span>
+
+<span class="n">__dict__</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">type_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="p">(</span><span class="n">types</span><span class="p">,</span> <span class="n">builtins</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">mod</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="nb">type</span><span class="p">):</span>
+            <span class="n">type_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+<span class="n">get_dict</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">pythonapi</span><span class="o">.</span><span class="n">_PyObject_GetDictPtr</span>
+<span class="n">get_dict</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">py_object</span><span class="p">)</span>
+<span class="n">get_dict</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">py_object</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">dictionary_of</span><span class="p">(</span><span class="n">ob</span><span class="p">):</span>
+    <span class="n">dptr</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="n">ob</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">dptr</span> <span class="ow">and</span> <span class="n">dptr</span><span class="o">.</span><span class="n">contents</span>
+    <span class="k">return</span> <span class="n">dptr</span><span class="o">.</span><span class="n">contents</span><span class="o">.</span><span class="n">value</span>
+
+<span class="n">methods</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="n">method_origin</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">type_list</span><span class="p">:</span>
+    <span class="n">methods</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dictionary_of</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dictionary_of</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">method_origin</span><span class="p">:</span>
+            <span class="n">method_origin</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">method_origin</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+<span class="k">del</span> <span class="n">type_list</span>
+<span class="n">dangerous</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">methods</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">good_methods</span><span class="p">]</span>
+
+<span class="n">get_mro</span> <span class="o">=</span> <span class="n">dictionary_of</span><span class="p">(</span><span class="nb">type</span><span class="p">)[</span><span class="s">&quot;__mro__&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">__get__</span>
+
+<span class="n">saved</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="getsattr"><a class="viewcode-back" href="../../sandypython/spec.html#sandypython.spec.getsattr">[docs]</a><span class="k">def</span> <span class="nf">getsattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">getattr</span><span class="o">=</span><span class="nb">getattr</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">get_mro</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)))</span> <span class="o">+</span> <span class="p">[</span><span class="nb">type</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="n">saved</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">saved</span><span class="p">[(</span><span class="n">t</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>  <span class="c"># let it make the error message</span>
+</div>
+<span class="n">not_expressed</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="remove_dangerous_attrs"><a class="viewcode-back" href="../../sandypython/spec.html#sandypython.spec.remove_dangerous_attrs">[docs]</a><span class="k">def</span> <span class="nf">remove_dangerous_attrs</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dangerous</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">method_origin</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+                <span class="n">not_expressed</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">saved</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c"># make sure our modifications is mirrored in the types we modify</span>
+            <span class="c"># this is a specialised purpose</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">_clear_type_cache</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="s">&quot;{} still has {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="replace_dangerous_attrs"><a class="viewcode-back" href="../../sandypython/spec.html#sandypython.spec.replace_dangerous_attrs">[docs]</a><span class="k">def</span> <span class="nf">replace_dangerous_attrs</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dangerous</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">method_origin</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
+            <span class="c"># make sure our modifications is mirrored in the types we modify</span>
+            <span class="c"># this is a specialised purpose</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">_clear_type_cache</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">not_expressed</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+                <span class="k">assert</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">j</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> <span class="s">&quot;{} still doesn&#39;t&#39; have {}&quot;</span> \
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="s">&quot;{} still doesn&#39;t&#39; have {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="stats"><a class="viewcode-back" href="../../sandypython/spec.html#sandypython.spec.stats">[docs]</a><span class="k">def</span> <span class="nf">stats</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Found&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">),</span> <span class="s">&quot;methods&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dangerous</span><span class="p">),</span> <span class="s">&quot;marked for removal&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">good_methods</span><span class="p">),</span> <span class="s">&quot;marked as good&quot;</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">stats</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Matthew Joyce.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sandypython.safe_dill &mdash; SandyPython 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="top" title="SandyPython 1.0.0 documentation" href="../index.html" />
+    <link rel="up" title="sandypython" href="../sandypython.html" />
+    <link rel="prev" title="sandypython.spec" href="spec.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="spec.html" title="sandypython.spec"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../sandypython.html" accesskey="U">sandypython</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="sandypython-safe-dill">
+<h1>sandypython.safe_dill<a class="headerlink" href="#sandypython-safe-dill" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+<span class="target" id="module-sandypython.safe_dill"></span><dl class="function">
+<dt id="sandypython.safe_dill.save">
+<tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">save</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sandypython.safe_dill.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="sandypython.safe_dill.load">
+<tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">load</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sandypython.safe_dill.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="sandypython.safe_dill.set_safe_modules">
+<tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">set_safe_modules</tt><big>(</big><em>safe_mods</em><big>)</big><a class="headerlink" href="#sandypython.safe_dill.set_safe_modules" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="sandypython.safe_dill.loads">
+<tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">loads</tt><big>(</big><em>str</em><big>)</big><a class="headerlink" href="#sandypython.safe_dill.loads" title="Permalink to this definition">¶</a></dt>
+<dd><p>unpickle an object from a string</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.safe_dill.dumps">
+<tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">dumps</tt><big>(</big><em>obj</em>, <em>protocol=None</em>, <em>byref=False</em><big>)</big><a class="headerlink" href="#sandypython.safe_dill.dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>pickle an object to a string</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.safe_dill.debug">
+<tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">debug</tt><big>(</big><em>boolean</em><big>)</big><a class="headerlink" href="#sandypython.safe_dill.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>print a trace through the stack when pickling; useful for debugging</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.safe_dill.register">
+<tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">register</tt><big>(</big><em>t</em><big>)</big><a class="headerlink" href="#sandypython.safe_dill.register" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="sandypython.safe_dill.copy">
+<tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">copy</tt><big>(</big><em>obj</em>, <em>*args</em>, <em>**kwds</em><big>)</big><a class="headerlink" href="#sandypython.safe_dill.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>use pickling to &#8216;copy&#8217; an object</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="sandypython.safe_dill.PicklingError">
+<em class="property">exception </em><tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">PicklingError</tt><a class="headerlink" href="#sandypython.safe_dill.PicklingError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="sandypython.safe_dill.UnpicklingError">
+<em class="property">exception </em><tt class="descclassname">sandypython.safe_dill.</tt><tt class="descname">UnpicklingError</tt><a class="headerlink" href="#sandypython.safe_dill.UnpicklingError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="spec.html"
+                        title="previous chapter">sandypython.spec</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/sandypython/safe_dill.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="spec.html" title="sandypython.spec"
+             >previous</a> |</li>
+        <li><a href="../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../sandypython.html" >sandypython</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Matthew Joyce.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
