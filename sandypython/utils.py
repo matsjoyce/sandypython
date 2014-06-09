@@ -1,5 +1,5 @@
 import inspect
-from . import core
+from . import core, spec
 
 __all__ = ["DeactivateSandbox", "ActivateSandbox", "check_builtins", "Any",
            "type_checker", "checked_importer"]
@@ -57,14 +57,14 @@ class Any:
     pass
 
 
-def check(fv, t, getsattr):
+def check(fv, t):
     if fv is None:
         if t is None:
             return True
-        return getsattr(t, "__class__") is tuple and None in t
-    elif getsattr(t, "__class__") is tuple:
+        return spec.getsattr(t, "__class__") is tuple and None in t
+    elif spec.getsattr(t, "__class__") is tuple:
         return type(fv) in t
-    return getsattr(t, "__class__") is type and type(fv) is t
+    return spec.getsattr(t, "__class__") is type and type(fv) is t
 
 
 def type_checker(**kwargs):
@@ -82,7 +82,7 @@ def type_checker(**kwargs):
                 t = kwargs[f]
                 if t is Any:
                     continue
-                if not check(fv, t, getsattr):
+                if not check(fv, t):
                     types = (f, get_type_name(t), get_type_name(fv))
                     raise TypeError("The argument for '%s' has to be a %s,"
                                     " not a %s" % types)
@@ -93,6 +93,31 @@ def type_checker(**kwargs):
         type_checker_wrapper.__doc__ = func.__doc__
         return type_checker_wrapper
     return decorator
+
+
+def type_checker_annotated(func):
+    args_names = inspect.getfullargspec(func)[0]
+    annotations = func.__annotations__
+
+    def type_checker_wrapper(*fargs, **fkwargs):
+        core.detamper_builtins()
+        for i, j in zip(fargs, args_names):
+            fkwargs[j] = i
+
+        for f, fv in fkwargs.items():
+            t = annotations[f]
+            if t is Any:
+                continue
+            if not check(fv, t):
+                types = (f, get_type_name(t), get_type_name(fv))
+                raise TypeError("The argument for '%s' has to be a %s,"
+                                " not a %s" % types)
+
+        return func(**fkwargs)
+
+    type_checker_wrapper.__name__ = func.__name__
+    type_checker_wrapper.__doc__ = func.__doc__
+    return type_checker_wrapper
 
 
 def clean_module(mod):
@@ -117,10 +142,10 @@ def allowed(name, fname, allowed_map):
 def checked_importer(allowed_map, noise=False):
     import _frozen_importlib as froz_imp_lib
 
-    @type_checker(name=str, globals=(dict, None), locals=(dict, None),
-                  fromlist=(tuple, list, None), level=int)
-    def controlled_importer(name, globals=None,
-                            locals=None, fromlist=(), level=0):
+    @type_checker_annotated
+    def controlled_importer(name: str, globals: (dict, None)=None,
+                            locals: (dict, None)=None,
+                            fromlist: (tuple, list, None)=(), level: int=0):
         if name == core.env_name:
             return core.exec_mod
 

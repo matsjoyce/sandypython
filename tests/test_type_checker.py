@@ -1,5 +1,5 @@
 import unittest
-from sandypython.utils import type_checker, Any
+from sandypython.utils import type_checker, type_checker_annotated, Any
 
 
 class TestTypeChecker(unittest.TestCase):
@@ -8,27 +8,38 @@ class TestTypeChecker(unittest.TestCase):
     def f(self, a, b, c="", d=None):
         return str(a) + b + c
 
-    def test_type_checker(self):
-        self.f(0, "", "")  # should work
+    @type_checker_annotated
+    def f_ann(self: Any, a: (int, dict, list, None), b: str, c: str="",
+              d: None=None):
+        return str(a) + b + c
 
-        self.f(None, "", "")  # should work
+    def do_test(self, f):
+        f(0, "", "")  # should work
+
+        f(None, "", "")  # should work
 
         with self.assertRaises(TypeError):
-            self.f(0, 0, "")
+            f(0, 0, "")
 
         with self.assertRaises(TypeError):
             class str(__builtins__["str"]):
                 pass
             __builtins__["str"] = str
-            self.f(0, str(), "hi")
+            f(0, str(), "hi")
 
-        self.f(c="hoo", a=0, b="boo", d=None)  # should work
-        self.f(0, b="mushroom", c="crumple")  # should work
-
-        with self.assertRaises(TypeError):
-            self.f("", b="bear", c="sandbag")
+        f(c="hoo", a=0, b="boo", d=None)  # should work
+        f(0, b="mushroom", c="crumple")  # should work
 
         with self.assertRaises(TypeError):
-            self.f([], "", d=1)
+            f("", b="bear", c="sandbag")
 
-        self.f({}, b="box", c=" of sand")  # should work
+        with self.assertRaises(TypeError):
+            f([], "", d=1)
+
+        f({}, b="box", c=" of sand")  # should work
+
+    def test_type_checker(self):
+        self.do_test(self.f)
+
+    def test_type_checker_ann(self):
+        self.do_test(self.f_ann)
