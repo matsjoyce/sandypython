@@ -5,6 +5,9 @@ safe_modules = ()
 
 
 def set_safe_modules(safe_mods):
+    """
+    Set a list of safe modules that pickle's load global opcode can import.
+    """
     global safe_modules
     safe_modules = safe_mods
 

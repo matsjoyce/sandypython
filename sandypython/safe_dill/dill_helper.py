@@ -8,8 +8,11 @@ old_getsattr = dill.getsattr
 
 
 @check_builtins
-def save():
-    with core.find_builtin("open")("/tmp/sand.pkl", "wb") as f:
+def save(filename="/tmp/sand.pkl"):
+    """
+    Save the contents of the sandbox's globals, to be restored by :func:`load`.
+    """
+    with core.find_builtin("open")(filename, "wb") as f:
         pickler = dill.Pickler(f, 4)
         pickler._main_module = core.exec_mod
         pickler._byref = False
@@ -42,8 +45,12 @@ class HackedUnpickler(pickle._Unpickler):
 
 
 @check_builtins
-def load():
-    with core.find_builtin("open")("/tmp/sand.pkl", "rb") as f:
+def load(filename="/tmp/sand.pkl"):
+    """
+    Load the contents of the sandbox's globals which has been saved by
+    :func:`save`.
+    """
+    with core.find_builtin("open")(filename, "rb") as f:
         unpickler = HackedUnpickler(core.exec_globals, f)
         unpickler._main_module = core.exec_mod
         unpickler._session = False

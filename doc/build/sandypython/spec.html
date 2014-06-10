@@ -55,31 +55,38 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="sandypython-spec">
-<h1>sandypython.spec<a class="headerlink" href="#sandypython-spec" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul class="simple">
-</ul>
-</div>
-<span class="target" id="module-sandypython.spec"></span><dl class="function">
+  <div class="section" id="module-sandypython.spec">
+<span id="sandypython-spec"></span><h1>sandypython.spec<a class="headerlink" href="#module-sandypython.spec" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
 <dt id="sandypython.spec.getsattr">
 <tt class="descclassname">sandypython.spec.</tt><tt class="descname">getsattr</tt><big>(</big><em>obj</em>, <em>name</em>, <em>getattr=&lt;built-in function getattr&gt;</em><big>)</big><a class="reference internal" href="../_modules/sandypython/spec.html#getsattr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.spec.getsattr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Mimics the behaviour of the builtin getattr, but works for special methods
+while the sandbox is running.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">utils</span><span class="o">.</span><span class="n">ActivateSandbox</span><span class="p">:</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">getsattr</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="s">&quot;__subclasses__&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="sandypython.spec.remove_dangerous_attrs">
 <tt class="descclassname">sandypython.spec.</tt><tt class="descname">remove_dangerous_attrs</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sandypython/spec.html#remove_dangerous_attrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.spec.remove_dangerous_attrs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Removes all the methods not mentioned in the good_*_methods.py files.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sandypython.spec.replace_dangerous_attrs">
 <tt class="descclassname">sandypython.spec.</tt><tt class="descname">replace_dangerous_attrs</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sandypython/spec.html#replace_dangerous_attrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.spec.replace_dangerous_attrs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Replaces all the methods removed by <a class="reference internal" href="#sandypython.spec.remove_dangerous_attrs" title="sandypython.spec.remove_dangerous_attrs"><tt class="xref py py-func docutils literal"><span class="pre">remove_dangerous_attrs()</span></tt></a>.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sandypython.spec.stats">
 <tt class="descclassname">sandypython.spec.</tt><tt class="descname">stats</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sandypython/spec.html#stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.spec.stats" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Prints some information which may be useful while tweaking the
+good_*_methods.py files</p>
+</dd></dl>
 
 </div>
 

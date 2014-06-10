@@ -104,6 +104,15 @@
 
 
 <div class="viewcode-block" id="getsattr"><a class="viewcode-back" href="../../sandypython/spec.html#sandypython.spec.getsattr">[docs]</a><span class="k">def</span> <span class="nf">getsattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">getattr</span><span class="o">=</span><span class="nb">getattr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mimics the behaviour of the builtin getattr, but works for special methods</span>
+<span class="sd">    while the sandbox is running.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        with utils.ActivateSandbox:</span>
+<span class="sd">            x = getsattr(object, &quot;__subclasses__&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">get_mro</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)))</span> <span class="o">+</span> <span class="p">[</span><span class="nb">type</span><span class="p">]:</span>
@@ -115,6 +124,9 @@
 
 
 <div class="viewcode-block" id="remove_dangerous_attrs"><a class="viewcode-back" href="../../sandypython/spec.html#sandypython.spec.remove_dangerous_attrs">[docs]</a><span class="k">def</span> <span class="nf">remove_dangerous_attrs</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Removes all the methods not mentioned in the good_*_methods.py files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dangerous</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">method_origin</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
@@ -128,6 +140,9 @@
 
 </div>
 <div class="viewcode-block" id="replace_dangerous_attrs"><a class="viewcode-back" href="../../sandypython/spec.html#sandypython.spec.replace_dangerous_attrs">[docs]</a><span class="k">def</span> <span class="nf">replace_dangerous_attrs</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Replaces all the methods removed by :func:`remove_dangerous_attrs`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dangerous</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">method_origin</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
             <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
@@ -142,6 +157,10 @@
 
 </div>
 <div class="viewcode-block" id="stats"><a class="viewcode-back" href="../../sandypython/spec.html#sandypython.spec.stats">[docs]</a><span class="k">def</span> <span class="nf">stats</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prints some information which may be useful while tweaking the</span>
+<span class="sd">    good_*_methods.py files</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;Found&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">),</span> <span class="s">&quot;methods&quot;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dangerous</span><span class="p">),</span> <span class="s">&quot;marked for removal&quot;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">good_methods</span><span class="p">),</span> <span class="s">&quot;marked as good&quot;</span><span class="p">)</span>

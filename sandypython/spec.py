@@ -54,6 +54,15 @@ saved = {}
 
 
 def getsattr(obj, name, getattr=getattr):
+    """
+    Mimics the behaviour of the builtin getattr, but works for special methods
+    while the sandbox is running.
+
+    Example::
+
+        with utils.ActivateSandbox:
+            x = getsattr(object, "__subclasses__")
+    """
     if hasattr(obj, name):
         return getattr(obj, name)
     for t in list(get_mro(type(obj))) + [type]:
@@ -65,6 +74,9 @@ not_expressed = defaultdict(list)
 
 
 def remove_dangerous_attrs():
+    """
+    Removes all the methods not mentioned in the good_*_methods.py files.
+    """
     for i in dangerous:
         for j in method_origin[i]:
             if not hasattr(j, i):
@@ -78,6 +90,9 @@ def remove_dangerous_attrs():
 
 
 def replace_dangerous_attrs():
+    """
+    Replaces all the methods removed by :func:`remove_dangerous_attrs`.
+    """
     for i in dangerous:
         for j in method_origin[i]:
             dictionary_of(j)[i] = saved[(j, i)]
@@ -92,6 +107,10 @@ def replace_dangerous_attrs():
 
 
 def stats():
+    """
+    Prints some information which may be useful while tweaking the
+    good_*_methods.py files
+    """
     print("Found", len(methods), "methods")
     print(len(dangerous), "marked for removal")
     print(len(good_methods), "marked as good")

@@ -57,15 +57,39 @@ sys.setrecursionlimit(500)
 
 
 def restrict(module, name):
+    """
+    Add `name` of `module` to the list of module members to remove on
+    starting the sandbox
+
+    Example::
+
+        restrict("builtins", "any")
+    """
     restricted[(module, name)] = None
 
 
 def allow(module, name):
+    """
+    Remove `name` of `module` to the list of module members to remove on
+    starting the sandbox
+
+    Example::
+
+        allow("allow", "type")
+    """
     if (module, name) in restricted:
         del restricted[(module, name)]
 
 
 def replace(module, name, obj):
+    """
+    Add `name` of `module` to the list of module members to replace on
+    starting the sandbox
+
+    Example::
+
+        replace("builtins", "print", my_printer)
+    """
     replaced[(module, name)] = obj
     restrict(module, name)
 
@@ -74,15 +98,32 @@ for i in __builtins__:
 
 
 def allow_builtin(name):
+    """
+    Equivalent to :func:`allow`, with `module` being `builtins`
+
+    Example::
+
+        allow_builtin("type")
+    """
     allow("builtins", name)
 
 
 def allow_defaults():
+    """
+    Allow a default list of builtins that are considered to be safe
+    """
     for i in default_allow:
         allow_builtin(i)
 
 
 def replace_builtin(name, obj):
+    """
+    Equivalent to :func:`replace`, with `module` being `builtins`
+
+    Example::
+
+        replace_builtin("__import__", utils.checked_imported(imp_map))
+    """
     replace("builtins", name, obj)
 
 
@@ -117,11 +158,21 @@ clean_exec_globals()
 
 
 def add_to_exec_globals(name, obj):
+    """
+    Adds an object which can be accessed by the sandboxed code as a global.
+    """
     exec_globals[name] = obj
     added_to_execgs.append(name)
 
 
 def start_sandbox():
+    """
+    If the sandbox has not been started, start it. This function removes all
+    special attributes, restricted module members, and does module member
+    replacements.
+
+    Also see :class:`sandypython.utils.ActivateSandbox`
+    """
     global started
     if not started:
         for i in _on_start:
@@ -133,6 +184,12 @@ def start_sandbox():
 
 
 def end_sandbox():
+    """
+    If the sandbox has been started, revert the interpreter state back to
+    that before :func:`start_sandbox` was called.
+
+    Also see :class:`sandypython.utils.DeactivateSandbox`
+    """
     global started
     if started:
         restore_restricted()
@@ -143,6 +200,10 @@ def end_sandbox():
 
 
 def exec_str(code_str):
+    """
+    Executes `code_str` under the sandbox. :func:`start_sandbox` is called
+    before executing the string.
+    """
     start_sandbox()
     find_builtin("exec")(code_str, exec_globals)
 
@@ -151,6 +212,12 @@ builtins_str = "__builtins__"
 
 
 def detamper_builtins(force=False):
+    """
+    Checks the members of the builtins module to make sure that they are the
+    same as before the code was executed.
+
+    Also see :class:`sandypython.utils.check_builtins`
+    """
     if started or force:
         __builtins__[str_string] = builtins_copy[str_string]
         for i, j in list(__builtins__.items()):
@@ -170,14 +237,24 @@ def find_builtin(name):
 
 
 def on_start(f):
+    """
+    Add a function to be called before the sandbox starts.
+    """
     _on_start.append(f)
 
 
 def on_end(f):
+    """
+    Add a function to be called once the sandbox ends.
+    """
     _on_end.append(f)
 
 
 def reset():
+    """
+    Resets the state of the sandbox, so that new code can be run without the
+    effects of the old code.
+    """
     global restricted, replaced, _on_start, _on_end
     restricted = {}
     replaced = {}

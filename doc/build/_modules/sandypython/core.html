@@ -107,15 +107,39 @@
 
 
 <div class="viewcode-block" id="restrict"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.restrict">[docs]</a><span class="k">def</span> <span class="nf">restrict</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add `name` of `module` to the list of module members to remove on</span>
+<span class="sd">    starting the sandbox</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        restrict(&quot;builtins&quot;, &quot;any&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">restricted</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">None</span>
 
 </div>
 <div class="viewcode-block" id="allow"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.allow">[docs]</a><span class="k">def</span> <span class="nf">allow</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove `name` of `module` to the list of module members to remove on</span>
+<span class="sd">    starting the sandbox</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        allow(&quot;allow&quot;, &quot;type&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="n">restricted</span><span class="p">:</span>
         <span class="k">del</span> <span class="n">restricted</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span>
 
 </div>
 <div class="viewcode-block" id="replace"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.replace">[docs]</a><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add `name` of `module` to the list of module members to replace on</span>
+<span class="sd">    starting the sandbox</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        replace(&quot;builtins&quot;, &quot;print&quot;, my_printer)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">replaced</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span> <span class="o">=</span> <span class="n">obj</span>
     <span class="n">restrict</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 </div>
@@ -124,15 +148,32 @@
 
 
 <div class="viewcode-block" id="allow_builtin"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.allow_builtin">[docs]</a><span class="k">def</span> <span class="nf">allow_builtin</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Equivalent to :func:`allow`, with `module` being `builtins`</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        allow_builtin(&quot;type&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">allow</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="allow_defaults"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.allow_defaults">[docs]</a><span class="k">def</span> <span class="nf">allow_defaults</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Allow a default list of builtins that are considered to be safe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">default_allow</span><span class="p">:</span>
         <span class="n">allow_builtin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="replace_builtin"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.replace_builtin">[docs]</a><span class="k">def</span> <span class="nf">replace_builtin</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Equivalent to :func:`replace`, with `module` being `builtins`</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        replace_builtin(&quot;__import__&quot;, utils.checked_imported(imp_map))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">replace</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
 
 </div>
@@ -167,11 +208,21 @@
 
 
 <div class="viewcode-block" id="add_to_exec_globals"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.add_to_exec_globals">[docs]</a><span class="k">def</span> <span class="nf">add_to_exec_globals</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds an object which can be accessed by the sandboxed code as a global.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">exec_globals</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
     <span class="n">added_to_execgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="start_sandbox"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.start_sandbox">[docs]</a><span class="k">def</span> <span class="nf">start_sandbox</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If the sandbox has not been started, start it. This function removes all</span>
+<span class="sd">    special attributes, restricted module members, and does module member</span>
+<span class="sd">    replacements.</span>
+
+<span class="sd">    Also see :class:`sandypython.utils.ActivateSandbox`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">started</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">started</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_on_start</span><span class="p">:</span>
@@ -183,6 +234,12 @@
 
 </div>
 <div class="viewcode-block" id="end_sandbox"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.end_sandbox">[docs]</a><span class="k">def</span> <span class="nf">end_sandbox</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If the sandbox has been started, revert the interpreter state back to</span>
+<span class="sd">    that before :func:`start_sandbox` was called.</span>
+
+<span class="sd">    Also see :class:`sandypython.utils.DeactivateSandbox`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">started</span>
     <span class="k">if</span> <span class="n">started</span><span class="p">:</span>
         <span class="n">restore_restricted</span><span class="p">()</span>
@@ -193,6 +250,10 @@
 
 </div>
 <div class="viewcode-block" id="exec_str"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.exec_str">[docs]</a><span class="k">def</span> <span class="nf">exec_str</span><span class="p">(</span><span class="n">code_str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Executes `code_str` under the sandbox. :func:`start_sandbox` is called</span>
+<span class="sd">    before executing the string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">start_sandbox</span><span class="p">()</span>
     <span class="n">find_builtin</span><span class="p">(</span><span class="s">&quot;exec&quot;</span><span class="p">)(</span><span class="n">code_str</span><span class="p">,</span> <span class="n">exec_globals</span><span class="p">)</span>
 </div>
@@ -201,6 +262,12 @@
 
 
 <div class="viewcode-block" id="detamper_builtins"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.detamper_builtins">[docs]</a><span class="k">def</span> <span class="nf">detamper_builtins</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks the members of the builtins module to make sure that they are the</span>
+<span class="sd">    same as before the code was executed.</span>
+
+<span class="sd">    Also see :class:`sandypython.utils.check_builtins`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">started</span> <span class="ow">or</span> <span class="n">force</span><span class="p">:</span>
         <span class="n">__builtins__</span><span class="p">[</span><span class="n">str_string</span><span class="p">]</span> <span class="o">=</span> <span class="n">builtins_copy</span><span class="p">[</span><span class="n">str_string</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">__builtins__</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
@@ -220,14 +287,24 @@
 
 
 <div class="viewcode-block" id="on_start"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.on_start">[docs]</a><span class="k">def</span> <span class="nf">on_start</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a function to be called before the sandbox starts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_on_start</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="on_end"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.on_end">[docs]</a><span class="k">def</span> <span class="nf">on_end</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a function to be called once the sandbox ends.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_on_end</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="reset"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.reset">[docs]</a><span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resets the state of the sandbox, so that new code can be run without the</span>
+<span class="sd">    effects of the old code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">restricted</span><span class="p">,</span> <span class="n">replaced</span><span class="p">,</span> <span class="n">_on_start</span><span class="p">,</span> <span class="n">_on_end</span>
     <span class="n">restricted</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">replaced</span> <span class="o">=</span> <span class="p">{}</span>

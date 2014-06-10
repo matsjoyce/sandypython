@@ -1,8 +1,8 @@
 import inspect
 from . import core, spec
 
-__all__ = ["DeactivateSandbox", "ActivateSandbox", "check_builtins", "Any",
-           "type_checker", "checked_importer"]
+__all__ = ["DeactivateSandbox", "ActivateSandbox", "check_builtins",
+           "type_checker", "type_checker_annotated", "Any", "checked_importer"]
 
 imported_modules = set()
 cols = {i: j for i, j in zip(("black", "red", "green", "yellow", "blue",
@@ -16,6 +16,19 @@ def colorf(*args, color="green"):
 
 
 class DeactivateSandbox:
+    """
+    Context manager which will call :func:`sandypython.core.end_sandbox`
+    if the sandbox was started, then :func:`sandypython.core.start_sandbox`
+    if it ended it. It is save to use this without activating the sandbox
+    before hand (it will be a no-op).
+
+    Example::
+
+        with utils.DeactivateSandbox:
+            open("f.txt")
+            import sys
+
+    """
     def __enter__(self):
         self.reinit = core.started
         core.end_sandbox()
@@ -26,6 +39,18 @@ class DeactivateSandbox:
 
 
 class ActivateSandbox:
+    """
+    Context manager which will call :func:`sandypython.core.start_sandbox`
+    if the sandbox has not been started, then
+    :func:`sandypython.core.end_sandbox` if it started it. It is save to
+    use this with the sandbox already started (it will be a no-op).
+
+    Example::
+
+        with utils.ActivateSandbox:
+            core.exec_str(bad_code)
+
+    """
     def __enter__(self):
         self.end = not core.started
         core.start_sandbox()
@@ -36,9 +61,15 @@ class ActivateSandbox:
 
 
 def check_builtins(func):
+    """
+    A decorator to make sure :func:`sandypython.core.detamper_builtins` is
+    called before any function code
+    """
     def check_builtins_wrapper(*args, **kwargs):
         core.detamper_builtins()
         return func(*args, **kwargs)
+    check_builtins_wrapper.__name__ = func.__name__
+    check_builtins_wrapper.__doc__ = func.__doc__
     return check_builtins_wrapper
 
 
@@ -54,6 +85,10 @@ def get_type_name(t):
 
 
 class Any:
+    """
+    Placeholder class used by :func:`type_checker` and
+    :func:`type_checker_annotated` to represent any type.
+    """
     pass
 
 
@@ -68,6 +103,19 @@ def check(fv, t):
 
 
 def type_checker(**kwargs):
+    """
+    Checks the types of all arguments against what is expected, and raises
+    :class:`TypeError` if they do not. It can be used to ensure no malicious
+    types can enter a function that lifts the sandbox. It takes the types in
+    kwarg form. A tuple of types means that the args can be any of those in
+    the tuple. :class:`Any` can be used to indicate any type.
+
+    Example::
+
+        @type_checker(self=Any, a=(int, dict, None), b=str, c=str)
+        def f(self, a, b, c=""):
+            return str(a) + b + c
+    """
     from .spec import getsattr
 
     def decorator(func):
@@ -96,6 +144,15 @@ def type_checker(**kwargs):
 
 
 def type_checker_annotated(func):
+    """
+    Same usage as :func:`type_checker`, but takes the types in annotation form.
+
+    Example::
+
+        @type_checker_annotated
+        def f_ann(self: Any, a: (int, dict, list, None), b: str, c: str=""):
+            return str(a) + b + c
+    """
     args_names = inspect.getfullargspec(func)[0]
     annotations = func.__annotations__
 
