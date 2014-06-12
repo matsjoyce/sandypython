@@ -19,6 +19,16 @@ Features
  - Sandboxing
  - Save / load capabillity (though ```sandypython.safe_dill```)
 
+Quick start:
+```py3
+from sandypython import *
+
+core.allow_defaults()
+
+with utils.ActivateSandbox():
+    core.exec_str(bad_code)
+```
+
 For a more complete reference, see the [docs](https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html)
 
 For those who want a challenge:
