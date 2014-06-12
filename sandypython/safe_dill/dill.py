@@ -656,7 +656,7 @@ def save_functor(pickler, obj):
 
 @register(BuiltinMethodType)
 def save_builtin_method(pickler, obj):
-    if obj.__self__ is not None:
+    if getsattr(obj, "__self__") is not None:
         log.info("B1: %s" % obj)
         pickler.save_reduce(_get_attr, (getsattr(obj, "__self__"), getsattr(obj, "__name__")), obj=obj)
     else:

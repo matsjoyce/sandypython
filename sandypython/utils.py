@@ -1,8 +1,12 @@
 import inspect
+import fnmatch
+import sys
+import os
 from . import core, spec
 
 __all__ = ["DeactivateSandbox", "ActivateSandbox", "check_builtins",
-           "type_checker", "type_checker_annotated", "Any", "checked_importer"]
+           "type_checker", "type_checker_annotated", "Any", "checked_importer",
+           "import_filter_by_name", "import_filter_by_path"]
 
 imported_modules = set()
 cols = {i: j for i, j in zip(("black", "red", "green", "yellow", "blue",
@@ -186,17 +190,76 @@ def clean_module(mod):
     imported_modules.add(mod)
 
 
-def allowed(name, fname, allowed_map):
-    if name in allowed_map["default"]:
-        return True
-    for i in allowed_map:
-        if fname.endswith(i) and i != "default":
-            if name in allowed_map[i]:
+def import_filter_by_name(allowed_map):
+    """
+    Filter for :func:`checked_importer` which takes a dict of paths against
+    allowed names. The "default" key represents the modules all code can
+    import.
+
+    Example::
+
+        imp_map = {os.path.abspath("./badcode/*.py"): ["./badcode/*.py"],
+                   "default": ["sys"]}
+        i = import_filter_by_name(imp_map)
+        i("sys", "random place", "doesn't matter")  # True
+        i("a_mod", "random place", "doesn't matter")  # False
+        i("a_mod", "./badcode/a_mod_importer.py", "doesn't matter")  # True
+    """
+    def filter(name, fname, module_path):
+        if name in allowed_map["default"]:
+            return True
+        for i in allowed_map:
+            if fnmatch.fnmatch(fname, i) and i != "default":
+                if name in allowed_map[i]:
+                    return True
+        return False
+    return filter
+
+
+def import_filter_by_path(allowed_map):
+    """
+    Filter for :func:`checked_importer` which takes a dict of paths against
+    allowed import paths. The "default" key represents the modules all code can
+    import.
+
+    Example::
+
+        imp_map = {os.path.abspath("./*.py"): ["/*.py"],
+                   "default": ["./*.py"]}
+        i = import_filter_by_path(imp_map)
+        i("sys", "random place", "/usr/lib/python3.4/sys.py")  # False
+        i("a_mod", "random place", "./a_mod.py")  # True
+        i("a_mod", "./a_mod_importer.py", "/usr/lib/python3.4/sys.py")  # True
+    """
+    def filter(name, fname, module_path):
+        for path in allowed_map["default"]:
+            if fnmatch.fnmatch(module_path, os.path.abspath(path)):
                 return True
-    return False
+        for i in allowed_map:
+            if fnmatch.fnmatch(fname, i):
+                for path in allowed_map[i]:
+                    if fnmatch.fnmatch(module_path, os.path.abspath(path)):
+                        return True
+        return False
+    return filter
 
 
-def checked_importer(allowed_map, noise=False):
+def checked_importer(imp_filter, noise=False):
+    """
+    :param imp_filter: function that should take the name of the module to
+        import, the path of the code importing the module and the path to
+        the module, and return a boolean indicating whether the import is
+        allowed or not
+    :type imp_filter: function
+    :param noise: enables extra logging info
+    :type noise: bool
+
+    Importer that can be used to replace __import__.
+
+    Example::
+
+        core.replace_builtin("__import__", utils.checked_importer(imp_filter))
+    """
     import _frozen_importlib as froz_imp_lib
 
     @type_checker_annotated
@@ -216,7 +279,19 @@ def checked_importer(allowed_map, noise=False):
             print(colorf("Importing %s from file %s:%d: " %
                          (name, fname, lineno), color="blue"), end="")
 
-        if allowed(name, fname, allowed_map) or fname == __file__:
+        module_path = ""
+        for path in sys.path:
+            for hook in sys.path_hooks:
+                try:
+                    loader = hook(path).find_module(name)
+                    if loader:
+                        module_path = loader.path
+                        break
+                except ImportError:
+                    pass
+        module_path = os.path.abspath(module_path) if module_path else ""
+
+        if imp_filter(name, fname, module_path) or fname == __file__:
             if noise:
                 print(colorf("Allowed", color="blue"))
 

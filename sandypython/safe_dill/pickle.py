@@ -907,7 +907,6 @@ class _Pickler:
         try:
             obj2 = safe_dill._import_module(module_name + "." + name)
         except (ImportError, KeyError, AttributeError) as e:
-            print(e, e.__traceback__)
             raise PicklingError(
                 "Can't pickle %r: it's not found as %s.%s" %
                 (obj, module_name, name))

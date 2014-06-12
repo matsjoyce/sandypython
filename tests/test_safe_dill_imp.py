@@ -1,10 +1,12 @@
 import unittest
 from sandypython.safe_dill import safe_dill
+from sandypython.utils import *
 
 
 class TestSafeDillImp(unittest.TestCase):
     def setUp(self):
-        safe_dill.set_safe_modules(["os", "sys"])
+        imap = {"default": ["sys", "os"]}
+        safe_dill.set_safe_modules(import_filter_by_name(imap))
 
     def test_dill_imp(self):
         f = safe_dill._import_module
@@ -20,4 +22,4 @@ class TestSafeDillImp(unittest.TestCase):
         self.assertEqual(f("os.os", safe=True), None)
 
     def tearDown(self):
-        safe_dill.set_safe_modules([])
+        safe_dill.set_safe_modules(None)

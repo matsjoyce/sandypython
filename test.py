@@ -41,17 +41,21 @@ def loads(s):
 
 core.allow_defaults()
 
-imp_map = {"default": ["a_mod", "bad_module"]}
+imp_map = {os.path.abspath("./badcode/*.py"): ["./badcode/*.py"],
+           "<string>": ["./badcode/*.py"],
+           "default": ["./badcode/*.py", "__sand__"]}
 bad_code = open("badcode/bad_code%s.py" % sys.argv[1]).read()
 
 core.add_to_exec_globals("prnt", prnt)
 core.add_to_exec_globals("h", h)
 core.add_to_exec_globals("colorfy", colorfy)
-core.add_to_exec_globals("save", safe_dill.save)
+core.add_to_exec_globals("save", lambda: safe_dill.save())
 core.add_to_exec_globals("load", safe_dill.load)
 core.add_to_exec_globals("loads", loads)
-safe_dill.set_safe_modules(imp_map["default"])
-core.replace_builtin("__import__", utils.checked_importer(imp_map))
+
+imp_filter = utils.import_filter_by_path(imp_map)
+safe_dill.set_safe_modules(imp_filter)
+core.replace_builtin("__import__", utils.checked_importer(imp_filter))
 core.replace_builtin("print", printer)
 with utils.ActivateSandbox():
     core.exec_str(bad_code)

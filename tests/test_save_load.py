@@ -1,6 +1,7 @@
 import unittest
 import sandypython
 from sandypython import safe_dill
+from sandypython.utils import *
 
 
 prog = """
@@ -22,7 +23,8 @@ c += 2
 class TestSaveLoad(unittest.TestCase):
     def setUp(self):
         sandypython.core.allow_defaults()
-        safe_dill.set_safe_modules(["a_mod", "__sand__"])
+        imap = {"default": ["a_mod", "__sand__"]}
+        safe_dill.set_safe_modules(import_filter_by_name(imap))
 
     def setup_globs(self):
         sandypython.core.add_to_exec_globals("load",
@@ -32,7 +34,7 @@ class TestSaveLoad(unittest.TestCase):
         imap = {"default": ["a_mod", "__sand__"]}
         sandypython.core.replace_builtin("__import__",
                                          sandypython.utils.checked_importer(
-                                             imap))
+                                             import_filter_by_name(imap)))
 
     def test_save_load(self):
         self.setup_globs()

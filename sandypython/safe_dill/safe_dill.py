@@ -1,7 +1,9 @@
 from types import FunctionType
+import sys
+import os
 
 safe_names = {}
-safe_modules = ()
+safe_modules = None
 
 
 def set_safe_modules(safe_mods):
@@ -22,7 +24,20 @@ def _import_module(import_name, safe=False):
     else:
         module = import_name
         obj = ""
-    if module not in safe_modules:
+
+    module_path = ""
+    for path in sys.path:
+        for hook in sys.path_hooks:
+            try:
+                loader = hook(path).find_module(module)
+                if loader:
+                    module_path = loader.path
+                    break
+            except ImportError:
+                pass
+
+    if not safe_modules or not safe_modules(module, __file__,
+                                            os.path.abspath(module_path)):
         if safe:
             return
         raise ImportError("'%s' is restricted" % module)
