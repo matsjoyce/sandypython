@@ -37,6 +37,7 @@ def try_to_import_modules():
 doing = False
 
 
+# Adapted from nedbatchelder.com/blog/201302/finding_python_3_builtins.html
 def try_to_find_builtins():
     def f(func):
         def w(*args):

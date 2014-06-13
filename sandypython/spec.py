@@ -26,6 +26,7 @@ for mod in (types, builtins):
         if isinstance(getattr(mod, i), type):
             type_list.add(getattr(mod, i))
 
+# Thanks to tav.espians.com/a-challenge-to-break-python-security.html
 get_dict = ctypes.pythonapi._PyObject_GetDictPtr
 get_dict.restype = ctypes.POINTER(ctypes.py_object)
 get_dict.argtypes = [ctypes.py_object]

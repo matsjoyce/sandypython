@@ -36,6 +36,7 @@ class DeactivateSandbox:
     def __enter__(self):
         self.reinit = core.started
         core.end_sandbox()
+        return self
 
     def __exit__(self, type, value, traceback):
         if self.reinit:
@@ -58,6 +59,7 @@ class ActivateSandbox:
     def __enter__(self):
         self.end = not core.started
         core.start_sandbox()
+        return self
 
     def __exit__(self, type, value, traceback):
         if self.end:

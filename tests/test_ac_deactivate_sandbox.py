@@ -16,10 +16,8 @@ class TestAcDeactivateSandbox(unittest.TestCase):
     def test_activate(self):
         with utils.ActivateSandbox():
             self.assertEqual(core.started, True)
-            a = utils.ActivateSandbox()
-            a.__enter__()
-            self.assertEqual(a.end, False)
-            a.__exit__(None, None, None)
+            with utils.ActivateSandbox() as a:
+                self.assertEqual(a.end, False)
             self.assertEqual(core.started, True)
 
     def tearDown(self):

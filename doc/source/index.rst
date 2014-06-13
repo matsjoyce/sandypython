@@ -44,3 +44,9 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+Acknowledgements
+================
+
+Code stolen from:
+ - tav.espians.com/a-challenge-to-break-python-security.html
+ - nedbatchelder.com/blog/201302/finding_python_3_builtins.html

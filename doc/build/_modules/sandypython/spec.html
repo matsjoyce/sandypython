@@ -76,6 +76,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="nb">type</span><span class="p">):</span>
             <span class="n">type_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
 
+<span class="c"># Thanks to tav.espians.com/a-challenge-to-break-python-security.html</span>
 <span class="n">get_dict</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">pythonapi</span><span class="o">.</span><span class="n">_PyObject_GetDictPtr</span>
 <span class="n">get_dict</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">py_object</span><span class="p">)</span>
 <span class="n">get_dict</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">py_object</span><span class="p">]</span>
