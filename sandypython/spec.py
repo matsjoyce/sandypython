@@ -72,6 +72,7 @@ def getsattr(obj, name, getattr=getattr):
     return getattr(obj, name)  # let it make the error message
 
 not_expressed = defaultdict(list)
+print = print
 
 
 def remove_dangerous_attrs():
@@ -82,8 +83,12 @@ def remove_dangerous_attrs():
         for j in method_origin[i]:
             if not hasattr(j, i):
                 not_expressed[j].append(i)
-            saved[(j, i)] = dictionary_of(j)[i]
-            del dictionary_of(j)[i]
+            try:
+                saved[(j, i)] = dictionary_of(j)[i]
+                del dictionary_of(j)[i]
+            except:
+                print("Failed, in remove", j, i)
+                raise
             # make sure our modifications is mirrored in the types we modify
             # this is a specialised purpose
             sys._clear_type_cache()
@@ -96,7 +101,11 @@ def replace_dangerous_attrs():
     """
     for i in dangerous:
         for j in method_origin[i]:
-            dictionary_of(j)[i] = saved[(j, i)]
+            try:
+                dictionary_of(j)[i] = saved[(j, i)]
+            except:
+                print("Failed, in replace", j, i)
+                raise
             # make sure our modifications is mirrored in the types we modify
             # this is a specialised purpose
             sys._clear_type_cache()
@@ -104,7 +113,8 @@ def replace_dangerous_attrs():
                 assert i in j.__dict__, "{} still doesn't' have {}" \
                     .format(j, i)
             else:
-                assert hasattr(j, i), "{} still doesn't' have {}".format(j, i)
+                assert hasattr(j, i), "{} still doesn't' have {}"\
+                    .format(j, i)
 
 
 def stats():
@@ -118,3 +128,5 @@ def stats():
 
 if __name__ == "__main__":
     stats()
+    for i in dangerous:
+        print(i)

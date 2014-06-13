@@ -33,7 +33,7 @@ methods += ["cause", "context", "suppress_context"]
 # descriptors
 methods += ["get", "delete"]
 # functions
-methods += ["call"]
+methods += ["call", "text_signature"]
 # methods += ["annotations", "defaults", "kwdefaults"]
 # metaclasses
 # methods += ["prepare", "instancecheck", "subclasscheck"]
