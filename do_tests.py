@@ -13,4 +13,5 @@ spec.dangerous.remove("co_filename")
 spec.dangerous.remove("co_name")
 
 tests = unittest.defaultTestLoader.discover("tests")
-unittest.TextTestRunner(verbosity=2, buffer=True).run(tests)
+runner = unittest.TextTestRunner(verbosity=2, buffer=True).run(tests)
+exit(bool(runner.errors or runner.failures))

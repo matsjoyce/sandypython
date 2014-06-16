@@ -3,12 +3,8 @@ import builtins
 import sys
 import ctypes
 from collections import defaultdict
-try:
-    from . import good_special_methods
-    from . import good_normal_methods
-except:
-    import good_special_methods
-    import good_normal_methods
+from . import good_special_methods
+from . import good_normal_methods
 
 __all__ = ["getsattr", "remove_dangerous_attrs", "replace_dangerous_attrs",
            "stats"]
@@ -83,12 +79,8 @@ def remove_dangerous_attrs():
         for j in method_origin[i]:
             if not hasattr(j, i):
                 not_expressed[j].append(i)
-            try:
-                saved[(j, i)] = dictionary_of(j)[i]
-                del dictionary_of(j)[i]
-            except:
-                print("Failed, in remove", j, i)
-                raise
+            saved[(j, i)] = dictionary_of(j)[i]
+            del dictionary_of(j)[i]
             # make sure our modifications is mirrored in the types we modify
             # this is a specialised purpose
             sys._clear_type_cache()
@@ -101,11 +93,7 @@ def replace_dangerous_attrs():
     """
     for i in dangerous:
         for j in method_origin[i]:
-            try:
-                dictionary_of(j)[i] = saved[(j, i)]
-            except:
-                print("Failed, in replace", j, i)
-                raise
+            dictionary_of(j)[i] = saved[(j, i)]
             # make sure our modifications is mirrored in the types we modify
             # this is a specialised purpose
             sys._clear_type_cache()
@@ -125,8 +113,3 @@ def stats():
     print("Found", len(methods), "methods")
     print(len(dangerous), "marked for removal")
     print(len(good_methods), "marked as good")
-
-if __name__ == "__main__":
-    stats()
-    for i in dangerous:
-        print(i)

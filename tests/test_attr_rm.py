@@ -20,5 +20,8 @@ class TestAttrRm(unittest.TestCase):
                     with sandypython.utils.ActivateSandbox():
                         getattr(type, attr)
 
+    def test_stats(self):
+        sandypython.spec.stats()
+
     def tearDown(self):
         sandypython.core.reset()
