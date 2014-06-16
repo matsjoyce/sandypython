@@ -63,7 +63,27 @@
 </li>
 </ul>
 </div>
-<p>To setup a basic sandbox, which does not allow imports:</p>
+</div>
+<div class="section" id="warning">
+<h1>Warning<a class="headerlink" href="#warning" title="Permalink to this headline">¶</a></h1>
+<p>This code has not been thoroughly tested yet, so do <strong>not</strong> use it in anything serious. However, feel free to help test it.</p>
+</div>
+<div class="section" id="about-sandypython">
+<h1>About SandyPython<a class="headerlink" href="#about-sandypython" title="Permalink to this headline">¶</a></h1>
+<p>SandyPython aims to provide a full sandbox that stops the sandboxed code from I/O. It does not aim to stop interpreter crashes.</p>
+</div>
+<div class="section" id="features">
+<h1>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><ul class="simple">
+<li>Sandboxing</li>
+<li>Save / load capabillity (though <a class="reference internal" href="sandypython/safe_dill.html#module-sandypython.safe_dill" title="sandypython.safe_dill"><tt class="xref py py-mod docutils literal"><span class="pre">sandypython.safe_dill</span></tt></a>)</li>
+<li>Module whitelist</li>
+<li>Method whitelist for all builtin types</li>
+<li>Full sphinx documentation at <a class="reference external" href="https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html">https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html</a></li>
+</ul>
+</div></blockquote>
+<p>Quick start:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sandypython</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">core</span><span class="o">.</span><span class="n">allow_defaults</span><span class="p">()</span>
@@ -72,22 +92,29 @@
     <span class="n">core</span><span class="o">.</span><span class="n">exec_str</span><span class="p">(</span><span class="n">bad_code</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>For a more complete reference, see the <a class="reference external" href="https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html">https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html</a></p>
 </div>
 <div class="section" id="for-those-who-want-a-challenge">
 <h1>For those who want a challenge:<a class="headerlink" href="#for-those-who-want-a-challenge" title="Permalink to this headline">¶</a></h1>
 <p>Place your cracking code in a file with the name bad_code + a number + .py
-(bad_code%d.py) in the folder badcode, and then call test.py with the number you used.</p>
+(<cite>bad_code%d.py</cite>) in the folder badcode, and then call test.py with the number you used.</p>
+<p>I.E. If you have called your program <cite>bad_code5.py</cite>, execute <cite>python test.py 5</cite></p>
 <dl class="docutils">
 <dt>Targets:</dt>
 <dd><ul class="first last simple">
-<li>Import sys, or any module not in badcode/</li>
+<li>Import <cite>sys</cite>, or any module not in badcode/</li>
 <li>Read or write a file</li>
 <li>Turn off the sandbox</li>
 <li>Retrieve any removed builtin function or type</li>
-<li>Retrieve __globals__ from a function or any other removed attribute</li>
+<li>Retrieve <cite>__globals__</cite> from a function or any other removed attribute</li>
 </ul>
 </dd>
 </dl>
+<p>Please report all breakthroughs as an issue.</p>
+</div>
+<div class="section" id="licence">
+<h1>Licence<a class="headerlink" href="#licence" title="Permalink to this headline">¶</a></h1>
+<p>All code GPLv3 except where code is from a external source (shown in code), where the licence is that of the external source</p>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
@@ -118,7 +145,11 @@
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Welcome to SandyPython&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#warning">Warning</a></li>
+<li><a class="reference internal" href="#about-sandypython">About SandyPython</a></li>
+<li><a class="reference internal" href="#features">Features</a></li>
 <li><a class="reference internal" href="#for-those-who-want-a-challenge">For those who want a challenge:</a></li>
+<li><a class="reference internal" href="#licence">Licence</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 <li><a class="reference internal" href="#acknowledgements">Acknowledgements</a></li>
 </ul>

@@ -167,6 +167,9 @@ def add_to_exec_globals(name, obj):
 
 def start_sandbox():
     """
+    Start desertification! Causes great heat, and destroys all unadapted
+    programs
+
     If the sandbox has not been started, start it. This function removes all
     special attributes, restricted module members, and does module member
     replacements.
@@ -185,6 +188,9 @@ def start_sandbox():
 
 def end_sandbox():
     """
+    Bring the rain! Effect -> desert to temperate climate, suitable for
+    average python programs
+
     If the sandbox has been started, revert the interpreter state back to
     that before :func:`start_sandbox` was called.
 
