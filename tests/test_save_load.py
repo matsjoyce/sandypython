@@ -1,7 +1,7 @@
 import unittest
 import sandypython
 from sandypython import safe_dill
-from sandypython.utils import *
+from sandypython.importing import *
 
 
 prog = """

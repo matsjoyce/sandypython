@@ -24,7 +24,7 @@ def has_a_got_a():
 
 @utils.check_builtins
 def prnt():
-    with sandypython.DeactivateSandbox():
+    with utils.DeactivateSandbox():
         import sys
         print(sys.version)
         print("Hello from free, unsecure, non-sandypythoned code!")
@@ -72,9 +72,9 @@ core.add_to_exec_globals("colorfy", colorfy)
 core.add_to_exec_globals("A", A)
 core.add_to_exec_globals("has_a_got_a", has_a_got_a)
 
-imp_filter = utils.import_filter_by_path(imp_map)
+imp_filter = importing.import_filter_by_path(imp_map)
 safe_dill.set_safe_modules(imp_filter)
-core.add_builtin("__import__", utils.checked_importer(imp_filter))
+core.add_builtin("__import__", importing.checked_importer(imp_filter))
 core.add_builtin("print", printer)
 with utils.ActivateSandbox():
     core.exec_str(bad_code)

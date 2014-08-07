@@ -1,6 +1,6 @@
 import unittest
 import sys
-from sandypython.utils import *
+from sandypython.importing import *
 
 
 class TestControlledImporter(unittest.TestCase):

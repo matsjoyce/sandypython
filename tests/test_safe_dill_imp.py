@@ -1,6 +1,6 @@
 import unittest
 from sandypython.safe_dill import safe_dill
-from sandypython.utils import *
+from sandypython.importing import *
 
 
 class TestSafeDillImp(unittest.TestCase):
