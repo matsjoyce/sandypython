@@ -2,6 +2,7 @@ import inspect
 import fnmatch
 import sys
 import os
+import types
 from . import core, spec
 
 __all__ = ["DeactivateSandbox", "ActivateSandbox", "check_builtins",
@@ -246,6 +247,19 @@ def import_filter_by_path(allowed_map):
     return filter
 
 
+def do_import(filename, name, globals, locals, fromlist, level):
+    if name in sys.modules:
+        return sys.modules[name]
+    mod = types.ModuleType(name)
+    sys.modules[name] = mod
+    code = open(filename).read()
+    exec(code, core.begin_globals, mod.__dict__)
+    if fromlist:
+        pass
+    else:
+        return mod
+
+
 def checked_importer(imp_filter, noise=False):
     """
     :param imp_filter: function that should take the name of the module to
@@ -297,18 +311,8 @@ def checked_importer(imp_filter, noise=False):
             if noise:
                 print(colorf("Allowed", color="blue"))
 
-            # give the import mechanism the function that is needs
-            froz_imp_lib.__dict__["exec"] = core.find_builtin("exec")
-            froz_imp_lib.__dict__["compile"] = core.find_builtin("compile")
+            mod = do_import(module_path, name, globals, locals, fromlist, level)
 
-            mod = core.find_builtin("__import__")(name, globals, locals,
-                                                  fromlist, level)
-
-            # then take them away again
-            froz_imp_lib.__dict__["exec"]
-            froz_imp_lib.__dict__["compile"]
-
-            clean_module(mod)
             return mod
         else:
             if noise:

@@ -5,6 +5,23 @@ import os
 sys.path.insert(0, "./badcode")
 
 
+class A:
+    def f(self, f):
+        return f
+    b = 1
+
+
+class B(A):
+    pass
+
+
+def has_a_got_a():
+    if hasattr(A, "a"):
+        print(A.a)
+        return True
+    return False
+
+
 @utils.check_builtins
 def prnt():
     with sandypython.DeactivateSandbox():
@@ -39,7 +56,7 @@ def h(a, b, c=""):
 def loads(s):
     return safe_dill.loads(s)
 
-core.allow_defaults()
+core.add_default_builtins()
 
 imp_map = {os.path.abspath("./badcode/*.py"): ["./badcode/*.py"],
            "<string>": ["./badcode/*.py"],
@@ -49,13 +66,15 @@ bad_code = open("badcode/bad_code%s.py" % sys.argv[1]).read()
 core.add_to_exec_globals("prnt", prnt)
 core.add_to_exec_globals("h", h)
 core.add_to_exec_globals("colorfy", colorfy)
-core.add_to_exec_globals("save", lambda: safe_dill.save())
-core.add_to_exec_globals("load", safe_dill.load)
-core.add_to_exec_globals("loads", loads)
+#core.add_to_exec_globals("save", lambda: safe_dill.save())
+#core.add_to_exec_globals("load", safe_dill.load)
+#core.add_to_exec_globals("loads", loads)
+core.add_to_exec_globals("A", A)
+core.add_to_exec_globals("has_a_got_a", has_a_got_a)
 
 imp_filter = utils.import_filter_by_path(imp_map)
 safe_dill.set_safe_modules(imp_filter)
-core.replace_builtin("__import__", utils.checked_importer(imp_filter))
-core.replace_builtin("print", printer)
+core.add_builtin("__import__", utils.checked_importer(imp_filter))
+core.add_builtin("print", printer)
 with utils.ActivateSandbox():
     core.exec_str(bad_code)

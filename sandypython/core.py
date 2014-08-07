@@ -1,6 +1,7 @@
 import sys
 from . import spec
 from .fakemod import make_fake_mod
+from .proxy import make_proxy
 
 __all__ = ["restrict", "allow", "replace", "allow_builtin", "allow_defaults",
            "replace_builtin", "add_to_exec_globals", "start_sandbox",
@@ -10,6 +11,7 @@ __all__ = ["restrict", "allow", "replace", "allow_builtin", "allow_defaults",
 builtins_copy = __builtins__.copy()
 restricted = {}
 replaced = {}
+begin_globals = {}
 exec_globals = {}
 exec_mod = None
 added_to_execgs = []
@@ -56,48 +58,22 @@ _on_end = []
 sys.setrecursionlimit(500)
 
 
-def restrict(module, name):
+def add_to_exec_globals(name, obj):
     """
-    Add `name` of `module` to the list of module members to remove on
-    starting the sandbox
-
-    Example::
-
-        restrict("builtins", "any")
+    Adds an object which can be accessed by the sandboxed code as a global.
     """
-    restricted[(module, name)] = None
+    begin_globals[name] = make_proxy(obj)
+    added_to_execgs.append(name)
 
 
-def allow(module, name):
+def get_from_exec_globals(name):
     """
-    Remove `name` of `module` to the list of module members to remove on
-    starting the sandbox
-
-    Example::
-
-        allow("allow", "type")
+    Gets an object which can be accessed by the sandboxed code as a global.
     """
-    if (module, name) in restricted:
-        del restricted[(module, name)]
+    return begin_globals[name]
 
 
-def replace(module, name, obj):
-    """
-    Add `name` of `module` to the list of module members to replace on
-    starting the sandbox
-
-    Example::
-
-        replace("builtins", "print", my_printer)
-    """
-    replaced[(module, name)] = obj
-    restrict(module, name)
-
-for i in __builtins__:
-    restrict("builtins", i)
-
-
-def allow_builtin(name):
+def add_builtin(name, obj=None):
     """
     Equivalent to :func:`allow`, with `module` being `builtins`
 
@@ -105,64 +81,28 @@ def allow_builtin(name):
 
         allow_builtin("type")
     """
-    allow("builtins", name)
+    if obj is None:
+        obj = __builtins__[name]
+    if "__builtins__" not in begin_globals:
+        add_to_exec_globals("__builtins__", {})
+    get_from_exec_globals("__builtins__")[name] = make_proxy(obj)
 
 
-def allow_defaults():
+def add_default_builtins():
     """
     Allow a default list of builtins that are considered to be safe
     """
     for i in default_allow:
-        allow_builtin(i)
-
-
-def replace_builtin(name, obj):
-    """
-    Equivalent to :func:`replace`, with `module` being `builtins`
-
-    Example::
-
-        replace_builtin("__import__", utils.checked_imported(imp_map))
-    """
-    replace("builtins", name, obj)
-
-
-def save_restricted():
-    for module, name in restricted:
-        restricted[(module, name)] = getattr(sys.modules[module], name)
-        delattr(sys.modules[module], name)
-
-
-def restore_restricted():
-    for stuff, obj in restricted.items():
-        module, name = stuff
-        setattr(sys.modules[module], name, obj)
-
-
-def replace_restricted():
-    for stuff, obj in replaced.items():
-        module, name = stuff
-        setattr(sys.modules[module], name, obj)
+        add_builtin(i)
 
 
 def clean_exec_globals():
     global exec_globals, exec_mod
-    exec_globals = {}
-    exec_globals["__builtins__"] = __builtins__
+    exec_globals = begin_globals.copy()
     exec_globals["__name__"] = env_name
     exec_mod = make_fake_mod(exec_globals)
     sys.modules[env_name] = exec_mod
     exec_globals[env_name] = sys.modules[env_name]
-
-clean_exec_globals()
-
-
-def add_to_exec_globals(name, obj):
-    """
-    Adds an object which can be accessed by the sandboxed code as a global.
-    """
-    exec_globals[name] = obj
-    added_to_execgs.append(name)
 
 
 def start_sandbox():
@@ -178,11 +118,13 @@ def start_sandbox():
     """
     global started
     if not started:
+        if exec_globals == {}:
+            clean_exec_globals()
         for i in _on_start:
             i()
         spec.remove_dangerous_attrs()
-        save_restricted()
-        replace_restricted()
+        #save_restricted()
+        #replace_restricted()
         started = True
 
 
@@ -198,7 +140,7 @@ def end_sandbox():
     """
     global started
     if started:
-        restore_restricted()
+        #restore_restricted()
         spec.replace_dangerous_attrs()
         for i in _on_end:
             i()
@@ -224,18 +166,7 @@ def detamper_builtins(force=False):
 
     Also see :class:`sandypython.utils.check_builtins`
     """
-    if started or force:
-        __builtins__[str_string] = builtins_copy[str_string]
-        for i, j in list(__builtins__.items()):
-            if i not in builtins_copy or ("builtins", i) in restricted \
-               and ("builtins", i) not in replaced:
-                del __builtins__[i]
-            elif builtins_copy[i] is not j:
-                if ("builtins", i) in replaced:
-                    if replaced[("builtins", i)] is not j:
-                        __builtins__[i] = replaced[("builtins", i)]
-                else:
-                    __builtins__[i] = builtins_copy[i]
+    pass
 
 
 def find_builtin(name):
@@ -266,6 +197,4 @@ def reset():
     replaced = {}
     _on_start = []
     _on_end = []
-    for i in __builtins__:
-        restrict("builtins", i)
     clean_exec_globals()

@@ -51,8 +51,8 @@ def try_to_find_builtins():
     wanted_funcs = ("open", "__import__", "exec", "compile", "system",
                     "print", "quit", "eval", "code", "end_sandbox")
     unwanted_modules = ("builtins", __name__, None, "sandypython.fakemod",
-                        "sandypython.utils", "copyreg", "a_mod",
-                        "__main__", "bad_module")
+                        "sandypython.utils", "sandypython.proxy", "copyreg",
+                        "a_mod", "__main__", "bad_module")
     constructer_args = [(), (4), (1), ("x",), ("x", "y"), ("x", "y", "z"),
                         ("utf8",), ("os",), ("sys",), ("io",), (1, 2, 3),
                         (0, 0, 0, 0, 0, b"KABOOM", (), (), (), "", "", 0, b""),
@@ -75,6 +75,8 @@ def try_to_find_builtins():
     found = [0]
 
     def is_builtins(v):
+        if type(v) == dict and "__name__" in v and v["__name__"] == "__builtins__":
+            return "__builtins__"
         if hasattr(v, "__name__"):
             if v.__name__ in wanted_funcs:
                 if v.__name__ == "code" and \
@@ -90,7 +92,6 @@ def try_to_find_builtins():
         return False
 
     g = globals().copy()
-    g.update(__builtins__)
 
     def construct_some(cl, classname=""):
         """Construct objects from class `cl`.
@@ -195,7 +196,6 @@ def try_to_find_builtins():
                 found[0] += 1
             else:
                 examine(v, desc2, seen, depth+1)
-
     examined = 0
     e = "\r"
     interactive = False
@@ -215,9 +215,12 @@ def try_to_find_builtins():
     g_ex = 0
     rseen = set()
     for i in range(1):
-        for i, j in g.items():
-            for obj, desc in construct_some(j, i):
-                examine(obj, desc, rseen, 0)
+        for i, j in sorted(g.items()):
+            try:
+                for obj, desc in construct_some(j, i):
+                    examine(obj, desc, rseen, 0)
+            except Exception as e:
+                print(e)
             print(msg, "{}/{}".format(found[0], examined + len(rseen)),
                   end="\r")
     examined += len(rseen)
@@ -250,7 +253,7 @@ def try_to_mess_with_str():
         def __repr__(self):
             return self.s("boo")
 
-    save()
+    #save()
     s = __builtins__["str"]
     __builtins__["str"] = str
     str.__module__ = "builtins"
@@ -266,6 +269,7 @@ def try_to_mess_with_str():
 
 def try_mugging():
     import a_mod
+    old_imp = __builtins__["__import__"]
     warnings = type(a_mod)('warnings')
 
     # Fill it with deception
@@ -275,9 +279,9 @@ def try_mugging():
     def __import__(*args):
         print(args)
         try:
-            print("How nice:\n", args[1].keys())
             global sys
             sys = args[1]['sys']
+            print("How nice:\n", args[1].keys())
         except Exception as v:
             pass
         return warnings
@@ -289,13 +293,15 @@ def try_mugging():
     __builtins__["__import__"] = __import__
 
     # An unsuspecting customer passes by...
-    save()
+    #save()
 
     # ... and is brutally mugged :)
     try:
         sys.version
+        __builtins__["__import__"] = old_imp
         return True
     except:
+        __builtins__["__import__"] = old_imp
         return False
 
 
@@ -315,7 +321,7 @@ def try_to_break_pickling():
             return r, (1, 2)
 
     a = A()
-    save()
+    #save()
     return suc
 
 
@@ -340,22 +346,26 @@ func_dict = {"Trying to get round type guard": try_to_get_round_type_guard,
              "Trying to mess with str": try_to_mess_with_str,
              "Trying to do mugging": try_mugging,
              "Trying to break pickling": try_to_break_pickling,
-             "Trying to get open though dill": try_to_get_open_dill
+             #"Trying to get open though dill": try_to_get_open_dill
              }
 
 print("Starting tests")
 
 for msg, func in func_dict.items():
     print(colorfy(msg + ": ", color="yellow"), end="")
+    #try:
     if func():
         print(colorfy("SUCCEEDED", color="red"))
     else:
         print(colorfy("FAILED", color="green"))
+    #except:
+    #print(colorfy("FAILED", color="green"))
 
 print("Finished tests")
-
+#print(__builtins__.items())
+#print(__builtins__["__import__"])
 import a_mod
 
 a_mod.a = 1234567890
 
-save()
+#save()
