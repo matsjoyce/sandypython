@@ -76,7 +76,7 @@ def func_proxy(obj):
         try:
             return obj(*args, **kwargs)
         except BaseException as e:
-            if type(e) in noproxytypes:
+            if type(e) in noproxy:
                 raise e
             else:
                 new_e_type = make_proxy(type(e))

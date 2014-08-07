@@ -8,7 +8,6 @@ __all__ = ["restrict", "allow", "replace", "allow_builtin", "allow_defaults",
            "end_sandbox", "exec_str", "detamper_builtins", "on_start",
            "on_end", "reset"]
 
-builtins_copy = __builtins__.copy()
 restricted = {}
 replaced = {}
 begin_globals = {}
@@ -155,22 +154,9 @@ def exec_str(code_str):
     start_sandbox()
     find_builtin("exec")(code_str, exec_globals)
 
-str_string = "str"
-builtins_str = "__builtins__"
-
-
-def detamper_builtins(force=False):
-    """
-    Checks the members of the builtins module to make sure that they are the
-    same as before the code was executed.
-
-    Also see :class:`sandypython.utils.check_builtins`
-    """
-    pass
-
 
 def find_builtin(name):
-    return builtins_copy[name]
+    return __builtins__[name]
 
 
 def on_start(f):

@@ -6,6 +6,8 @@ import types
 from .utils import DeactivateSandbox, type_checker_annotated, colorf
 from . import core
 
+modules = {}
+
 
 def import_filter_by_name(allowed_map):
     """
@@ -62,10 +64,18 @@ def import_filter_by_path(allowed_map):
 
 
 def do_import(filename, name, globals, locals, fromlist, level):
-    if name in sys.modules:
-        return sys.modules[name]
+    if filename == "":
+        mod = __import__(name, globals, locals, (), level)
+        if hasattr(mod, "__loader__"):
+            del mod.__loader__
+        if hasattr(mod, "__spec__"):
+            del mod.__spec__
+        mod.__builtins__ = __builtins__
+        return __import__(name, globals, locals, fromlist, level)
+    if name in modules:
+        return modules[name]
     mod = types.ModuleType(name)
-    sys.modules[name] = mod
+    modules[name] = mod
     code = open(filename).read()
     exec(code, core.begin_globals, mod.__dict__)
     if fromlist:

@@ -69,7 +69,6 @@ def check_builtins(func):
     called before any function code
     """
     def check_builtins_wrapper(*args, **kwargs):
-        core.detamper_builtins()
         return func(*args, **kwargs)
     check_builtins_wrapper.__name__ = func.__name__
     check_builtins_wrapper.__doc__ = func.__doc__
@@ -125,7 +124,6 @@ def type_checker(**kwargs):
         args_names = inspect.getargspec(func)[0]
 
         def type_checker_wrapper(*fargs, **fkwargs):
-            core.detamper_builtins()
             for i, j in zip(fargs, args_names):
                 fkwargs[j] = i
 
@@ -160,7 +158,6 @@ def type_checker_annotated(func):
     annotations = func.__annotations__
 
     def type_checker_wrapper(*fargs, **fkwargs):
-        core.detamper_builtins()
         for i, j in zip(fargs, args_names):
             fkwargs[j] = i
 
