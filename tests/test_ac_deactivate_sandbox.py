@@ -4,7 +4,7 @@ from sandypython import core, utils
 
 class TestAcDeactivateSandbox(unittest.TestCase):
     def setUp(self):
-        core.allow_defaults()
+        core.add_default_builtins()
 
     def test_deactivate(self):
         with utils.DeactivateSandbox():

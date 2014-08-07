@@ -75,7 +75,8 @@ def try_to_find_builtins():
     found = [0]
 
     def is_builtins(v):
-        if type(v) == dict and "__name__" in v and v["__name__"] == "__builtins__":
+        if type(v) == dict and "__name__" in v and \
+           v["__name__"] == "__builtins__":
             return "__builtins__"
         if hasattr(v, "__name__"):
             if v.__name__ in wanted_funcs:
@@ -253,7 +254,7 @@ def try_to_mess_with_str():
         def __repr__(self):
             return self.s("boo")
 
-    #save()
+    # save()
     s = __builtins__["str"]
     __builtins__["str"] = str
     str.__module__ = "builtins"
@@ -293,7 +294,7 @@ def try_mugging():
     __builtins__["__import__"] = __import__
 
     # An unsuspecting customer passes by...
-    #save()
+    # save()
 
     # ... and is brutally mugged :)
     try:
@@ -321,7 +322,7 @@ def try_to_break_pickling():
             return r, (1, 2)
 
     a = A()
-    #save()
+    # save()
     return suc
 
 
@@ -346,26 +347,26 @@ func_dict = {"Trying to get round type guard": try_to_get_round_type_guard,
              "Trying to mess with str": try_to_mess_with_str,
              "Trying to do mugging": try_mugging,
              "Trying to break pickling": try_to_break_pickling,
-             #"Trying to get open though dill": try_to_get_open_dill
+             # "Trying to get open though dill": try_to_get_open_dill
              }
 
 print("Starting tests")
 
 for msg, func in func_dict.items():
     print(colorfy(msg + ": ", color="yellow"), end="")
-    #try:
-    if func():
-        print(colorfy("SUCCEEDED", color="red"))
-    else:
+    try:
+        if func():
+            print(colorfy("SUCCEEDED", color="red"))
+        else:
+            print(colorfy("FAILED", color="green"))
+    except:
         print(colorfy("FAILED", color="green"))
-    #except:
-    #print(colorfy("FAILED", color="green"))
 
 print("Finished tests")
-#print(__builtins__.items())
-#print(__builtins__["__import__"])
+# print(__builtins__.items())
+# print(__builtins__["__import__"])
 import a_mod
 
 a_mod.a = 1234567890
 
-#save()
+# save()

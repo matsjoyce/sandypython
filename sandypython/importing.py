@@ -123,7 +123,8 @@ def checked_importer(imp_filter, noise=False):
             if noise:
                 print(colorf("Allowed", color="blue"))
 
-            mod = do_import(module_path, name, globals, locals, fromlist, level)
+            mod = do_import(module_path, name, globals, locals, fromlist,
+                            level)
 
             return mod
         else:

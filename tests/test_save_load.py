@@ -8,6 +8,7 @@ prog = """
 import a_mod
 from a_mod import b
 a_mod.a = 120
+#print(globals())
 a=1
 b=2
 c=a+b
@@ -22,19 +23,20 @@ c += 2
 
 class TestSaveLoad(unittest.TestCase):
     def setUp(self):
-        sandypython.core.allow_defaults()
         imap = {"default": ["a_mod", "__sand__"]}
         safe_dill.set_safe_modules(import_filter_by_name(imap))
 
     def setup_globs(self):
+        sandypython.core.add_default_builtins()
         sandypython.core.add_to_exec_globals("load",
                                              sandypython.safe_dill.load)
         sandypython.core.add_to_exec_globals("save",
                                              sandypython.safe_dill.save)
         imap = {"default": ["a_mod", "__sand__"]}
-        sandypython.core.replace_builtin("__import__",
-                                         sandypython.utils.checked_importer(
-                                             import_filter_by_name(imap)))
+        sandypython.core.add_builtin("__import__",
+                                     sandypython.importing.checked_importer(
+                                         import_filter_by_name(imap)))
+        sandypython.core.clean_exec_globals()
 
     def test_save_load(self):
         self.setup_globs()

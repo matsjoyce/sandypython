@@ -123,8 +123,8 @@ def start_sandbox():
         for i in _on_start:
             i()
         spec.remove_dangerous_attrs()
-        #save_restricted()
-        #replace_restricted()
+        # save_restricted()
+        # replace_restricted()
         started = True
 
 
@@ -140,7 +140,7 @@ def end_sandbox():
     """
     global started
     if started:
-        #restore_restricted()
+        # restore_restricted()
         spec.replace_dangerous_attrs()
         for i in _on_end:
             i()

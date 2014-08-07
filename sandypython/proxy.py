@@ -34,7 +34,8 @@ made_proxies = {}
 
 def return_whole(obj):
     try:
-        return obj in noproxy or obj in noproxytypes or type(obj) in noproxytypes
+        return obj in noproxy or obj in noproxytypes \
+            or type(obj) in noproxytypes
     except:
         return False
 

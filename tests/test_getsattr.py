@@ -1,12 +1,12 @@
 import unittest
 from sandypython.spec import getsattr
-from sandypython.core import allow_defaults, reset
+from sandypython.core import add_default_builtins, reset
 from sandypython.utils import ActivateSandbox
 
 
 class TestGetsattr(unittest.TestCase):
     def setUp(self):
-        allow_defaults()
+        add_default_builtins()
 
     def test_getsattr(self):
         f = self.setUp.__class__
