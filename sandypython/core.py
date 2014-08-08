@@ -1,7 +1,7 @@
 import sys
-from . import spec
+from . import spec, verify
 from .fakemod import make_fake_mod
-from .proxy import make_proxy
+import types
 
 __all__ = ["restrict", "allow", "replace", "allow_builtin", "allow_defaults",
            "replace_builtin", "add_to_exec_globals", "start_sandbox",
@@ -57,11 +57,14 @@ _on_end = []
 sys.setrecursionlimit(500)
 
 
-def add_to_exec_globals(name, obj):
+def add_to_exec_globals(name, obj, check_protected=True):
     """
     Adds an object which can be accessed by the sandboxed code as a global.
     """
-    begin_globals[name] = make_proxy(obj)
+    if check_protected and isinstance(obj, types.FunctionType) \
+       and obj.__name__ != verify.checked_func_name:
+        raise RuntimeError("{} is not protected")
+    begin_globals[name] = obj
     added_to_execgs.append(name)
 
 
@@ -72,7 +75,7 @@ def get_from_exec_globals(name):
     return begin_globals[name]
 
 
-def add_builtin(name, obj=None):
+def add_builtin(name, obj=None, check_protected=True):
     """
     Equivalent to :func:`allow`, with `module` being `builtins`
 
@@ -84,7 +87,10 @@ def add_builtin(name, obj=None):
         obj = __builtins__[name]
     if "__builtins__" not in begin_globals:
         add_to_exec_globals("__builtins__", {})
-    get_from_exec_globals("__builtins__")[name] = make_proxy(obj)
+    if check_protected and isinstance(obj, types.FunctionType) \
+       and obj.__name__ != verify.checked_func_name:
+        raise RuntimeError("{} is not protected")
+    get_from_exec_globals("__builtins__")[name] = obj
 
 
 def add_default_builtins():

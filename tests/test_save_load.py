@@ -29,13 +29,16 @@ class TestSaveLoad(unittest.TestCase):
     def setup_globs(self):
         sandypython.core.add_default_builtins()
         sandypython.core.add_to_exec_globals("load",
-                                             sandypython.safe_dill.load)
+                                             sandypython.safe_dill.load,
+                                             check_protected=False)
         sandypython.core.add_to_exec_globals("save",
-                                             sandypython.safe_dill.save)
+                                             sandypython.safe_dill.save,
+                                             check_protected=False)
         imap = {"default": ["a_mod", "__sand__"]}
         sandypython.core.add_builtin("__import__",
                                      sandypython.importing.checked_importer(
-                                         import_filter_by_name(imap)))
+                                         import_filter_by_name(imap)),
+                                     check_protected=False)
         sandypython.core.clean_exec_globals()
 
     def test_save_load(self):

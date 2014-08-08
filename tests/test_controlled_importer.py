@@ -10,7 +10,7 @@ class TestControlledImporter(unittest.TestCase):
                 __file__: ["gc"]
                 }
         f = checked_importer(import_filter_by_name(imap), noise=True)
-        add_builtin("__import__", f)
+        add_builtin("__import__", f, check_protected=False)
         f("sys")
         f("gc")
         with self.assertRaises(ImportError):
@@ -21,7 +21,7 @@ class TestControlledImporter(unittest.TestCase):
                 __file__: ["./tests/*.py"]
                 }
         f = checked_importer(import_filter_by_path(imap))
-        add_builtin("__import__", f)
+        add_builtin("__import__", f, check_protected=False)
         f("a_mod")
         f("b_mod")
         with self.assertRaises(ImportError):

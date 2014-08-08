@@ -188,11 +188,13 @@ def setargsverify(func, **verify_data):
                    for key, matcher in verify_data.items()}
     func_args_ver[func] = verify_data
 
+checked_func_name = "arg_checked_func"
+
 
 def argschecker(**verify_data):
     def savkw(func):
         setargsverify(func, **verify_data)
-        args_names = inspect.getargspec(func)[0]
+        args_names = inspect.getfullargspec(func)[0]
 
         def arg_checked_func(*args, **kwargs):
             for i, j in zip(args, args_names):
@@ -200,7 +202,8 @@ def argschecker(**verify_data):
 
             v = verifyargs(func, kwargs)
             if v:
-                raise RuntimeError("Argument verification of arg '{1}' failed: {0}".format(*v))
+                raise RuntimeError("Argument verification"
+                                   " of arg '{1}' failed: {0}".format(*v))
 
             return func(**kwargs)
         return arg_checked_func

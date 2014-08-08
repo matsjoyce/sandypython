@@ -22,10 +22,13 @@ class TestTypeChecker(unittest.TestCase):
             f(0, 0, "")
 
         with self.assertRaises(TypeError):
+            s = __builtins__["str"]
+
             class str(__builtins__["str"]):
                 pass
             __builtins__["str"] = str
             f(0, str(), "hi")
+        __builtins__["str"] = s
 
         f(c="hoo", a=0, b="boo", d=None)  # should work
         f(0, b="mushroom", c="crumple")  # should work

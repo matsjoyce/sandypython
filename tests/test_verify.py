@@ -20,7 +20,10 @@ class TestVerify(unittest.TestCase):
         class WierdObj:
             a = 1
 
-        settypeverify(WierdObj, a=int, __module__=str, __doc__=(None, str), __init__=Shared(WierdObj.__init__), __weakref__=Shared(WierdObj.__weakref__), __dict__=Shared(WierdObj.__dict__))
+        settypeverify(WierdObj, a=int, __module__=str, __doc__=(None, str),
+                      __init__=Shared(WierdObj.__init__),
+                      __weakref__=Shared(WierdObj.__weakref__),
+                      __dict__=Shared(WierdObj.__dict__))
         setinstverify(WierdObj, __weakref__=None)
 
         class A:
@@ -47,12 +50,14 @@ class TestVerify(unittest.TestCase):
         self.assertEqual(verifyobj(a), ("key 'a' has failed verification", a))
         f = A.f
         A.f = self.test_verifyobj
-        self.assertEqual(verifyobj(A(1)), ("key 'f' has failed verification", A))
+        self.assertEqual(verifyobj(A(1)), ("key 'f' has failed verification",
+                                           A))
         A.f = f
         WierdObj.a = 2
         self.assertIs(verifyobj(A(1)), None)
         WierdObj.a = ""
-        self.assertEqual(verifyobj(A(1)), ("key 'a' has failed verification", WierdObj))
+        self.assertEqual(verifyobj(A(1)), ("key 'a' has failed verification",
+                                           WierdObj))
         WierdObj.a = 2
 
         def f():
@@ -63,7 +68,8 @@ class TestVerify(unittest.TestCase):
         self.assertEqual(verifyobj(f), ("key 'x' not in verify data", f))
         del f.x
         f.__module__ = WierdObj()
-        self.assertEqual(verifyobj(f), ("key '__module__' has failed verification", f))
+        self.assertEqual(verifyobj(f), ("key '__module__' has failed "
+                                        "verification", f))
 
     def test_arg_checker(self):
         @argschecker(a=(int, dict, list, None), b=str, c=str)
@@ -74,11 +80,11 @@ class TestVerify(unittest.TestCase):
             h(0, "", "")  # should work
         with self.assertRaises(RuntimeError):
             h(0, 0, "")
-        #with self.assertRaises(RuntimeError):
-            #class str(__builtins__["str"]):
-                #pass
-            #__builtins__["str"] = str
-            #h(0, str(), "hi")
+        # with self.assertRaises(RuntimeError):
+        #     class str(__builtins__["str"]):
+        #         pass
+        #     __builtins__["str"] = str
+        #     h(0, str(), "hi")
         with self.assertNotRaises():
             h(c="hoo", a=0, b="boo")
         with self.assertNotRaises():

@@ -61,7 +61,10 @@ def getsattr(obj, name, getattr=getattr):
             x = getsattr(object, "__subclasses__")
     """
     if hasattr(obj, name):
-        return getattr(obj, name)
+        try:
+            return getattr(obj, name)
+        except:
+            pass
     for t in list(get_mro(type(obj))) + [type]:
         if (t, name) in saved:
             return saved[(t, name)].__get__(obj)

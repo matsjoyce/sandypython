@@ -8,6 +8,6 @@ init()
 __all__ = ["save", "load", "set_safe_modules", "loads", "dumps", "debug",
            "register", "copy", "PicklingError", "UnpicklingError"]
 
-from sandypython.core import on_start, on_end
-on_start(set_getsattr)
-on_end(unset_getsattr)
+from sandypython.spec import getsattr
+dill.getsattr = getsattr
+
