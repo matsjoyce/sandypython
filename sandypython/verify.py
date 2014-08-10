@@ -188,7 +188,7 @@ def setargsverify(func, **verify_data):
                    for key, matcher in verify_data.items()}
     func_args_ver[func] = verify_data
 
-checked_func_name = "arg_checked_func"
+checked_func_names = "arg_checked_func", "check_builtins_wrapper", "type_checker_wrapper"
 
 
 def argschecker(**verify_data):
