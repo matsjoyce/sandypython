@@ -1,13 +1,14 @@
 from .. import core
-from ..utils import check_builtins
+from ..verify import argschecker
 from ..spec import getsattr
 from . import pickle, dill
 from .safe_dill import safe_modules
+import types
 
 old_getsattr = dill.getsattr
 
 
-@check_builtins
+@argschecker()
 def save(filename="/tmp/sand.pkl"):
     """
     Save the contents of the sandbox's globals, to be restored by :func:`load`.
@@ -44,7 +45,7 @@ class HackedUnpickler(pickle._Unpickler):
     pickle._Unpickler.dispatch[pickle.EMPTY_DICT[0]] = load_empty_dictionary
 
 
-@check_builtins
+@argschecker()
 def load(filename="/tmp/sand.pkl"):
     """
     Load the contents of the sandbox's globals which has been saved by

@@ -1,14 +1,12 @@
 import unittest
 import sandypython
-from sandypython import safe_dill
-from sandypython.importing import *
+from sandypython import *
 
 
 prog = """
 import a_mod
 from a_mod import b
 a_mod.a = 120
-#print(globals())
 a=1
 b=2
 c=a+b
@@ -24,33 +22,33 @@ c += 2
 class TestSaveLoad(unittest.TestCase):
     def setUp(self):
         imap = {"default": ["a_mod", "__sand__"]}
-        safe_dill.set_safe_modules(import_filter_by_name(imap))
+        safe_dill.set_safe_modules(importing.import_filter_by_name(imap))
 
     def setup_globs(self):
-        sandypython.core.add_default_builtins()
-        sandypython.core.add_to_exec_globals("load",
-                                             sandypython.safe_dill.load,
-                                             check_protected=False)
-        sandypython.core.add_to_exec_globals("save",
-                                             sandypython.safe_dill.save,
-                                             check_protected=False)
+        core.add_default_builtins()
+        core.add_to_exec_globals("load",
+                                 safe_dill.load,
+                                 check_protected=False)
+        core.add_to_exec_globals("save",
+                                 safe_dill.save,
+                                 check_protected=False)
         imap = {"default": ["a_mod", "__sand__"]}
-        sandypython.core.add_builtin("__import__",
-                                     sandypython.importing.checked_importer(
-                                         import_filter_by_name(imap)),
-                                     check_protected=False)
-        sandypython.core.clean_exec_globals()
+        core.add_builtin("__import__",
+                         importing.checked_importer(
+                             importing.import_filter_by_name(imap)),
+                         check_protected=False)
+        core.clean_exec_globals()
 
     def test_save_load(self):
         self.setup_globs()
-        with sandypython.utils.ActivateSandbox():
-            sandypython.core.exec_str(prog)
+        with utils.ActivateSandbox():
+            core.exec_str(prog)
 
-            with sandypython.utils.DeactivateSandbox():
-                sandypython.core.clean_exec_globals()
+            with utils.DeactivateSandbox():
+                core.clean_exec_globals()
                 self.setup_globs()
 
-            sandypython.core.exec_str(prog2)
+            core.exec_str(prog2)
             try:
                 self.setUp.__globals__
             except:
@@ -58,10 +56,17 @@ class TestSaveLoad(unittest.TestCase):
             else:
                 self.fail()
 
-        self.assertEqual(sandypython.core.exec_globals["c"], 5)
-        self.assertEqual(sandypython.core.exec_globals["a_mod"].a, 120)
-        self.assertEqual(sandypython.core.exec_globals["__sand__"].a,
-                         sandypython.core.exec_globals["a"])
+        self.assertEqual(core.exec_globals["c"], 5)
+        self.assertEqual(core.exec_globals["a_mod"].a, 120)
+        self.assertEqual(core.exec_globals["__sand__"].a,
+                         core.exec_globals["a"])
 
     def tearDown(self):
-        sandypython.core.reset()
+        core.reset()
+
+
+if __name__ == "__main__":
+    tsl = TestSaveLoad()
+    tsl.setUp()
+    tsl.test_save_load()
+    tsl.tearDown()

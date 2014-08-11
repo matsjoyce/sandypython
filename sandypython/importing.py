@@ -75,11 +75,15 @@ def do_import(filename, name, globals, locals, fromlist, level):
     if name in modules:
         return modules[name]
     mod = types.ModuleType(name)
+    mod.__package__ = mod.__name__ = name
+    mod.__file__ = filename
     modules[name] = mod
     code = open(filename).read()
-    exec(code, core.begin_globals, mod.__dict__)
+    for k, v in core.begin_globals.items():
+        mod.__dict__[k] = v
+    exec(code, mod.__dict__, mod.__dict__)
     if fromlist:
-        pass
+        return [getattr(mod, n) for n in fromlist]
     else:
         return mod
 

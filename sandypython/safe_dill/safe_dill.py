@@ -1,9 +1,53 @@
 from types import FunctionType
+from .. import core
 import sys
 import os
 
 safe_names = {}
 safe_modules = None
+
+sandy_func_list = {}
+
+
+def retrive_sf(name_):
+    for name, obj in sandy_func_list.values():
+        if name == name_:
+            return obj
+
+
+def scan(name, obj, seen, lst):
+    if id(obj) in seen:
+        return
+    elif not isinstance(obj, (int, str)):
+        if id(obj) not in lst:
+            lst[id(obj)] = name, obj
+
+    if hasattr(obj, "__dict__"):
+        for name2, obj2 in obj.__dict__.items():
+            scan(name + "." + name2, obj2, seen, lst)
+    if hasattr(obj, "items"):
+        try:
+            for k, v in obj.items():
+                scan(name + "[{!r}]".format(k), v, seen, lst)
+        except:
+            pass
+    else:
+        try:
+            for i, v in enumerate(obj.items()):
+                scan(name + "[{}]".format(i), v, seen, lst)
+        except:
+            pass
+
+
+def make_sandy_func_list():
+    global sandy_func_list
+    if not sandy_func_list:
+        seen = set()
+        lst = {}
+        for name, obj in core.begin_globals.items():
+            scan(name, obj, seen, lst)
+        sandy_func_list = lst
+        print(lst)
 
 
 def set_safe_modules(safe_mods):
@@ -65,3 +109,4 @@ def init():
     safe_names["sandypython.safe_dill.dill._eval_repr"] = dill._eval_repr
     safe_names["sandypython.safe_dill.dill._load_type"] = dill._load_type
     safe_names["sandypython.safe_dill.dill._get_attr"] = dill._get_attr
+    safe_names["sandypython.safe_dill.safe_dill.retrive_sf"] = retrive_sf
