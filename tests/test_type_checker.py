@@ -1,45 +1,199 @@
-import unittest
-from sandypython.utils import type_checker, type_checker_annotated, Any
+import tcase
+from sandypython.verify import *
 
 
-class TestTypeChecker(unittest.TestCase):
-    @type_checker(self=Any, a=(int, dict, list, None), b=str,
-                  c=str, d=None)
-    def f(self, a, b, c="", d=None):
-        return str(a) + b + c
+class TestTypeChecker(tcase.TestCase):
+    def setUp(self):
+        class WierdObj:
+            a = 1
 
-    @type_checker_annotated
-    def f_ann(self: Any, a: (int, dict, list, None), b: str, c: str="",
-              d: None=None):
-        return str(a) + b + c
+        settypeverify(WierdObj, a=int, __module__=str, __doc__=(None, str),
+                      __init__=Shared(WierdObj.__init__),
+                      __weakref__=Shared(WierdObj.__weakref__),
+                      __dict__=Shared(WierdObj.__dict__))
+        setinstverify(WierdObj, __weakref__=None)
 
-    def do_test(self, f):
-        f(0, "", "")  # should work
+        class A:
+            def __init__(self, a):
+                self.a = 1
 
-        f(None, "", "")  # should work
-
-        with self.assertRaises(TypeError):
-            f(0, 0, "")
-
-        with self.assertRaises(TypeError):
-            class str(__builtins__["str"]):
+            def f(self):
                 pass
-            __builtins__["str"] = str
-            f(0, str(), "hi")
+            a = 1
+            b = WierdObj()
 
-        f(c="hoo", a=0, b="boo", d=None)  # should work
-        f(0, b="mushroom", c="crumple")  # should work
+        print(generatetypeverify(A))
+        print(generateinstverify(A(1)))
+        self.A = A
+        self.WierdObj = WierdObj
 
-        with self.assertRaises(TypeError):
-            f("", b="bear", c="sandbag")
+    def test_arg_checker(self):
+        @argschecker(a=(int, dict, list, None), b=str, c=str)
+        def h(a, b, c=""):
+            return str(a) + b + c
 
-        with self.assertRaises(TypeError):
-            f([], "", d=1)
+        with self.assertNotRaises():
+            h(0, "", "")  # should work
+        with self.assertRaises(RuntimeError):
+            h(0, 0, "")
+        # with self.assertRaises(RuntimeError):
+        #     class str(__builtins__["str"]):
+        #         pass
+        #     __builtins__["str"] = str
+        #     h(0, str(), "hi")
+        with self.assertNotRaises():
+            h(c="hoo", a=0, b="boo")
+        with self.assertNotRaises():
+            h(0, b="mushroom", c="crumple")
+        with self.assertRaises(RuntimeError):
+            h("", b="bear", c="sandbag")
+        with self.assertNotRaises():
+            h({}, b="box", c=" of sand")
 
-        f({}, b="box", c=" of sand")  # should work
+        A, WierdObj = self.A, self.WierdObj
 
-    def test_type_checker(self):
-        self.do_test(self.f)
+        @argschecker(a=(A, None), b=str, c=WierdObj)
+        def h(a, b, c=WierdObj()):
+            return 1, 2, 3
 
-    def test_type_checker_ann(self):
-        self.do_test(self.f_ann)
+        with self.assertNotRaises():
+            h(A(1), "")
+        a = A(2)
+        a.a = 5
+        with self.assertNotRaises():
+            h(a, "a")
+        f = A.f
+        A.f = self.setUp
+        with self.assertRaises(RuntimeError):
+            h(A(1), "hi")
+        A.f = f
+        WierdObj.a = 2
+        with self.assertNotRaises():
+            h(A(1), "hi")
+            h(A(1), "hi", WierdObj())
+        WierdObj.a = ""
+        with self.assertRaises(RuntimeError):
+            h(A(1), "hi", WierdObj())
+        WierdObj.a = 2
+
+        A.f.x = 1
+        with self.assertRaises(RuntimeError):
+            h(A(1), "hi", WierdObj())
+        del A.f.x
+        afm = A.f.__module__
+        A.f.__module__ = WierdObj()
+        with self.assertRaises(RuntimeError):
+            h(A(1), "hi", WierdObj())
+        A.f.__module__ = afm
+
+        @argschecker(__args__=Sequence(tuple, str), __kwargs__=str)
+        def f(*args, **kwargs):
+            pass
+
+        with self.assertNotRaises():
+            f()
+        with self.assertNotRaises():
+            f("a", "b")
+        with self.assertNotRaises():
+            f(a="a", b="b")
+        with self.assertNotRaises():
+            f("a", "b", "c", d="d", e="e")
+        with self.assertRaises(RuntimeError):
+            f(1, 2)
+        with self.assertRaises(RuntimeError):
+            f(a=1, d=2)
+        with self.assertRaises(RuntimeError):
+            f(1, 2, c=3, d=4)
+
+    def test_arg_checker_ann(self):
+        @argschecker_ann
+        def h(a: (int, dict, list, None), b: str, c: str=""):
+            return str(a) + b + c
+
+        with self.assertNotRaises():
+            h(0, "", "")  # should work
+        with self.assertRaises(RuntimeError):
+            h(0, 0, "")
+        # with self.assertRaises(RuntimeError):
+        #     class str(__builtins__["str"]):
+        #         pass
+        #     __builtins__["str"] = str
+        #     h(0, str(), "hi")
+        with self.assertNotRaises():
+            h(c="hoo", a=0, b="boo")
+        with self.assertNotRaises():
+            h(0, b="mushroom", c="crumple")
+        with self.assertRaises(RuntimeError):
+            h("", b="bear", c="sandbag")
+        with self.assertNotRaises():
+            h({}, b="box", c=" of sand")
+
+        A, WierdObj = self.A, self.WierdObj
+
+        @argschecker_ann
+        def h(a: (A, None), b: str, c: WierdObj=WierdObj()):
+            return 1, 2, 3
+
+        with self.assertNotRaises():
+            h(A(1), "")
+        a = A(2)
+        a.a = 5
+        with self.assertNotRaises():
+            h(a, "a")
+        f = A.f
+        A.f = self.setUp
+        with self.assertRaises(RuntimeError):
+            h(A(1), "hi")
+        A.f = f
+        WierdObj.a = 2
+        with self.assertNotRaises():
+            h(A(1), "hi")
+            h(A(1), "hi", WierdObj())
+        WierdObj.a = ""
+        with self.assertRaises(RuntimeError):
+            h(A(1), "hi", WierdObj())
+        WierdObj.a = 2
+
+        A.f.x = 1
+        with self.assertRaises(RuntimeError):
+            h(A(1), "hi", WierdObj())
+        del A.f.x
+        afm = A.f.__module__
+        A.f.__module__ = WierdObj()
+        with self.assertRaises(RuntimeError):
+            h(A(1), "hi", WierdObj())
+        A.f.__module__ = afm
+
+        @argschecker_ann
+        def f(*__args__: Sequence(tuple, str), **__kwargs__: str):
+            pass
+
+        with self.assertNotRaises():
+            f()
+        with self.assertNotRaises():
+            f("a", "b")
+        with self.assertNotRaises():
+            f(a="a", b="b")
+        with self.assertNotRaises():
+            f("a", "b", "c", d="d", e="e")
+        with self.assertRaises(RuntimeError):
+            f(1, 2)
+        with self.assertRaises(RuntimeError):
+            f(a=1, d=2)
+        with self.assertRaises(RuntimeError):
+            f(1, 2, c=3, d=4)
+
+        @argschecker_ann
+        def f(*__args__: Sequence(tuple, str)):
+            pass
+
+        with self.assertNotRaises():
+            f()
+        with self.assertNotRaises():
+            f("a", "b")
+        with self.assertRaises(RuntimeError):
+            f(1, 2)
+        with self.assertRaises(RuntimeError):
+            f(a=1, d=2)
+        with self.assertRaises(RuntimeError):
+            f(1, 2, c=3, d=4)

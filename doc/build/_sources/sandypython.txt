@@ -10,3 +10,5 @@ Sub-modules:
     sandypython/utils
     sandypython/spec
     sandypython/safe_dill
+    sandypython/importing
+    sandypython/verify

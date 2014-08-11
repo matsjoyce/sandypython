@@ -4,7 +4,7 @@ import sandypython
 
 class TestAttrRm(unittest.TestCase):
     def setUp(self):
-        sandypython.core.allow_defaults()
+        sandypython.core.add_default_builtins()
 
     def test_func_globals(self):
         with self.assertRaises(AttributeError):

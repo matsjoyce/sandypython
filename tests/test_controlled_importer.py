@@ -1,17 +1,18 @@
 import unittest
 import sys
-from sandypython.utils import *
+from sandypython.importing import *
+from sandypython.core import add_builtin
 
 
 class TestControlledImporter(unittest.TestCase):
     def test_controlled_importer_noise(self):
-        imap = {"default": ["sys", "io"],
-                __file__: ["os"]
+        imap = {"default": ["sys"],
+                __file__: ["gc"]
                 }
         f = checked_importer(import_filter_by_name(imap), noise=True)
+        add_builtin("__import__", f, check_protected=False)
         f("sys")
-        f("io")
-        f("os")
+        f("gc")
         with self.assertRaises(ImportError):
             f("functools")
 
@@ -20,9 +21,12 @@ class TestControlledImporter(unittest.TestCase):
                 __file__: ["./tests/*.py"]
                 }
         f = checked_importer(import_filter_by_path(imap))
+        add_builtin("__import__", f, check_protected=False)
         f("a_mod")
-        f("test_fake_mod")
+        f("b_mod")
         with self.assertRaises(ImportError):
             f("sys")
         with self.assertRaises(ImportError):
             f("kivy")
+        f("__sand__")
+        self.assertEqual(f("a_mod", fromlist=("a", "b")), f("a_mod"))

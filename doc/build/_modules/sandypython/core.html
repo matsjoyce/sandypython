@@ -49,17 +49,17 @@
             
   <h1>Source code for sandypython.core</h1><div class="highlight"><pre>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">spec</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">spec</span><span class="p">,</span> <span class="n">verify</span>
 <span class="kn">from</span> <span class="nn">.fakemod</span> <span class="kn">import</span> <span class="n">make_fake_mod</span>
+<span class="kn">import</span> <span class="nn">types</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;restrict&quot;</span><span class="p">,</span> <span class="s">&quot;allow&quot;</span><span class="p">,</span> <span class="s">&quot;replace&quot;</span><span class="p">,</span> <span class="s">&quot;allow_builtin&quot;</span><span class="p">,</span> <span class="s">&quot;allow_defaults&quot;</span><span class="p">,</span>
-           <span class="s">&quot;replace_builtin&quot;</span><span class="p">,</span> <span class="s">&quot;add_to_exec_globals&quot;</span><span class="p">,</span> <span class="s">&quot;start_sandbox&quot;</span><span class="p">,</span>
-           <span class="s">&quot;end_sandbox&quot;</span><span class="p">,</span> <span class="s">&quot;exec_str&quot;</span><span class="p">,</span> <span class="s">&quot;detamper_builtins&quot;</span><span class="p">,</span> <span class="s">&quot;on_start&quot;</span><span class="p">,</span>
-           <span class="s">&quot;on_end&quot;</span><span class="p">,</span> <span class="s">&quot;reset&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;add_to_exec_globals&quot;</span><span class="p">,</span> <span class="s">&quot;get_from_exec_globals&quot;</span><span class="p">,</span> <span class="s">&quot;add_builtin&quot;</span><span class="p">,</span>
+           <span class="s">&quot;add_default_builtins&quot;</span><span class="p">,</span> <span class="s">&quot;start_sandbox&quot;</span><span class="p">,</span> <span class="s">&quot;end_sandbox&quot;</span><span class="p">,</span> <span class="s">&quot;exec_str&quot;</span><span class="p">,</span>
+           <span class="s">&quot;on_start&quot;</span><span class="p">,</span> <span class="s">&quot;on_end&quot;</span><span class="p">,</span> <span class="s">&quot;reset&quot;</span><span class="p">]</span>
 
-<span class="n">builtins_copy</span> <span class="o">=</span> <span class="n">__builtins__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 <span class="n">restricted</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">replaced</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">begin_globals</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">exec_globals</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">exec_mod</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="n">added_to_execgs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -106,115 +106,60 @@
 <span class="n">sys</span><span class="o">.</span><span class="n">setrecursionlimit</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="restrict"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.restrict">[docs]</a><span class="k">def</span> <span class="nf">restrict</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="add_to_exec_globals"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.add_to_exec_globals">[docs]</a><span class="k">def</span> <span class="nf">add_to_exec_globals</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">check_protected</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Add `name` of `module` to the list of module members to remove on</span>
-<span class="sd">    starting the sandbox</span>
-
-<span class="sd">    Example::</span>
-
-<span class="sd">        restrict(&quot;builtins&quot;, &quot;any&quot;)</span>
+<span class="sd">    Adds an object which can be accessed by the sandboxed code as a global.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">restricted</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">check_protected</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">)</span> \
+       <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">verify</span><span class="o">.</span><span class="n">checked_func_names</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;{} is not protected&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+    <span class="n">begin_globals</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+    <span class="n">added_to_execgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="allow"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.allow">[docs]</a><span class="k">def</span> <span class="nf">allow</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="get_from_exec_globals"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.get_from_exec_globals">[docs]</a><span class="k">def</span> <span class="nf">get_from_exec_globals</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Remove `name` of `module` to the list of module members to remove on</span>
-<span class="sd">    starting the sandbox</span>
-
-<span class="sd">    Example::</span>
-
-<span class="sd">        allow(&quot;allow&quot;, &quot;type&quot;)</span>
+<span class="sd">    Gets an object from the sandbox globals.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="n">restricted</span><span class="p">:</span>
-        <span class="k">del</span> <span class="n">restricted</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">begin_globals</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
 
 </div>
-<div class="viewcode-block" id="replace"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.replace">[docs]</a><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="add_builtin"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.add_builtin">[docs]</a><span class="k">def</span> <span class="nf">add_builtin</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">check_protected</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Add `name` of `module` to the list of module members to replace on</span>
-<span class="sd">    starting the sandbox</span>
-
-<span class="sd">    Example::</span>
-
-<span class="sd">        replace(&quot;builtins&quot;, &quot;print&quot;, my_printer)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">replaced</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span> <span class="o">=</span> <span class="n">obj</span>
-    <span class="n">restrict</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-</div>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">__builtins__</span><span class="p">:</span>
-    <span class="n">restrict</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="allow_builtin"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.allow_builtin">[docs]</a><span class="k">def</span> <span class="nf">allow_builtin</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Equivalent to :func:`allow`, with `module` being `builtins`</span>
+<span class="sd">    Adds an object which can be accessed by the sandboxed code under</span>
+<span class="sd">    __builtins__.</span>
 
 <span class="sd">    Example::</span>
 
 <span class="sd">        allow_builtin(&quot;type&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">allow</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">__builtins__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s">&quot;__builtins__&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">begin_globals</span><span class="p">:</span>
+        <span class="n">add_to_exec_globals</span><span class="p">(</span><span class="s">&quot;__builtins__&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">check_protected</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">)</span> \
+       <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">verify</span><span class="o">.</span><span class="n">checked_func_names</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;{} is not protected&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+    <span class="n">get_from_exec_globals</span><span class="p">(</span><span class="s">&quot;__builtins__&quot;</span><span class="p">)[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
 
 </div>
-<div class="viewcode-block" id="allow_defaults"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.allow_defaults">[docs]</a><span class="k">def</span> <span class="nf">allow_defaults</span><span class="p">():</span>
+<div class="viewcode-block" id="add_default_builtins"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.add_default_builtins">[docs]</a><span class="k">def</span> <span class="nf">add_default_builtins</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Allow a default list of builtins that are considered to be safe</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">default_allow</span><span class="p">:</span>
-        <span class="n">allow_builtin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">add_builtin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="replace_builtin"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.replace_builtin">[docs]</a><span class="k">def</span> <span class="nf">replace_builtin</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Equivalent to :func:`replace`, with `module` being `builtins`</span>
-
-<span class="sd">    Example::</span>
-
-<span class="sd">        replace_builtin(&quot;__import__&quot;, utils.checked_imported(imp_map))</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">replace</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
-
-</div>
-<span class="k">def</span> <span class="nf">save_restricted</span><span class="p">():</span>
-    <span class="k">for</span> <span class="n">module</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">restricted</span><span class="p">:</span>
-        <span class="n">restricted</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span>
-        <span class="nb">delattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">restore_restricted</span><span class="p">():</span>
-    <span class="k">for</span> <span class="n">stuff</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">restricted</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">module</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">stuff</span>
-        <span class="nb">setattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module</span><span class="p">],</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">replace_restricted</span><span class="p">():</span>
-    <span class="k">for</span> <span class="n">stuff</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">replaced</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">module</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">stuff</span>
-        <span class="nb">setattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module</span><span class="p">],</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
-
-
 <span class="k">def</span> <span class="nf">clean_exec_globals</span><span class="p">():</span>
     <span class="k">global</span> <span class="n">exec_globals</span><span class="p">,</span> <span class="n">exec_mod</span>
-    <span class="n">exec_globals</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">exec_globals</span><span class="p">[</span><span class="s">&quot;__builtins__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__builtins__</span>
+    <span class="n">exec_globals</span> <span class="o">=</span> <span class="n">begin_globals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">exec_globals</span><span class="p">[</span><span class="s">&quot;__name__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">env_name</span>
     <span class="n">exec_mod</span> <span class="o">=</span> <span class="n">make_fake_mod</span><span class="p">(</span><span class="n">exec_globals</span><span class="p">)</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">env_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">exec_mod</span>
     <span class="n">exec_globals</span><span class="p">[</span><span class="n">env_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">env_name</span><span class="p">]</span>
 
-<span class="n">clean_exec_globals</span><span class="p">()</span>
 
-
-<div class="viewcode-block" id="add_to_exec_globals"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.add_to_exec_globals">[docs]</a><span class="k">def</span> <span class="nf">add_to_exec_globals</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Adds an object which can be accessed by the sandboxed code as a global.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">exec_globals</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
-    <span class="n">added_to_execgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-
-</div>
 <div class="viewcode-block" id="start_sandbox"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.start_sandbox">[docs]</a><span class="k">def</span> <span class="nf">start_sandbox</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Start desertification! Causes great heat, and destroys all unadapted</span>
@@ -228,11 +173,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">started</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">started</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exec_globals</span> <span class="o">==</span> <span class="p">{}:</span>
+            <span class="n">clean_exec_globals</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_on_start</span><span class="p">:</span>
             <span class="n">i</span><span class="p">()</span>
         <span class="n">spec</span><span class="o">.</span><span class="n">remove_dangerous_attrs</span><span class="p">()</span>
-        <span class="n">save_restricted</span><span class="p">()</span>
-        <span class="n">replace_restricted</span><span class="p">()</span>
+        <span class="c"># save_restricted()</span>
+        <span class="c"># replace_restricted()</span>
         <span class="n">started</span> <span class="o">=</span> <span class="bp">True</span>
 
 </div>
@@ -248,7 +195,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">started</span>
     <span class="k">if</span> <span class="n">started</span><span class="p">:</span>
-        <span class="n">restore_restricted</span><span class="p">()</span>
+        <span class="c"># restore_restricted()</span>
         <span class="n">spec</span><span class="o">.</span><span class="n">replace_dangerous_attrs</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_on_end</span><span class="p">:</span>
             <span class="n">i</span><span class="p">()</span>
@@ -262,34 +209,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">start_sandbox</span><span class="p">()</span>
     <span class="n">find_builtin</span><span class="p">(</span><span class="s">&quot;exec&quot;</span><span class="p">)(</span><span class="n">code_str</span><span class="p">,</span> <span class="n">exec_globals</span><span class="p">)</span>
-</div>
-<span class="n">str_string</span> <span class="o">=</span> <span class="s">&quot;str&quot;</span>
-<span class="n">builtins_str</span> <span class="o">=</span> <span class="s">&quot;__builtins__&quot;</span>
-
-
-<div class="viewcode-block" id="detamper_builtins"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.detamper_builtins">[docs]</a><span class="k">def</span> <span class="nf">detamper_builtins</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Checks the members of the builtins module to make sure that they are the</span>
-<span class="sd">    same as before the code was executed.</span>
-
-<span class="sd">    Also see :class:`sandypython.utils.check_builtins`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">started</span> <span class="ow">or</span> <span class="n">force</span><span class="p">:</span>
-        <span class="n">__builtins__</span><span class="p">[</span><span class="n">str_string</span><span class="p">]</span> <span class="o">=</span> <span class="n">builtins_copy</span><span class="p">[</span><span class="n">str_string</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">__builtins__</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">builtins_copy</span> <span class="ow">or</span> <span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">restricted</span> \
-               <span class="ow">and</span> <span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">replaced</span><span class="p">:</span>
-                <span class="k">del</span> <span class="n">__builtins__</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="n">builtins_copy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">j</span><span class="p">:</span>
-                <span class="k">if</span> <span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">replaced</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">replaced</span><span class="p">[(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">j</span><span class="p">:</span>
-                        <span class="n">__builtins__</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">replaced</span><span class="p">[(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">__builtins__</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">builtins_copy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 
 </div>
 <span class="k">def</span> <span class="nf">find_builtin</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">builtins_copy</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">__builtins__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="on_start"><a class="viewcode-back" href="../../sandypython/core.html#sandypython.core.on_start">[docs]</a><span class="k">def</span> <span class="nf">on_start</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
@@ -314,10 +237,6 @@
     <span class="k">global</span> <span class="n">restricted</span><span class="p">,</span> <span class="n">replaced</span><span class="p">,</span> <span class="n">_on_start</span><span class="p">,</span> <span class="n">_on_end</span>
     <span class="n">restricted</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">replaced</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">_on_start</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">_on_end</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">__builtins__</span><span class="p">:</span>
-        <span class="n">restrict</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
     <span class="n">clean_exec_globals</span><span class="p">()</span></div>
 </pre></div>
 

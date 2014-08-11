@@ -28,6 +28,16 @@ def _trace(boolean):
     else: log.setLevel(logging.WARN)
     return
 
+class Log:
+    def __init__(self):
+        self.f = open("dill_log.txt", "w")
+    def info(self, s, *a):
+        self.f.write(s % a)
+        self.f.write("\n")
+        self.f.flush()
+
+log = Log()
+
 import os
 import sys
 PY3 = (hex(sys.hexversion) >= '0x30000f0')
@@ -288,6 +298,7 @@ def _create_typemap():
     return
 _reverse_typemap = dict(_create_typemap())
 _reverse_typemap.update({
+    'NoneType': type(None),
     'CellType': CellType,
     'WrapperDescriptorType': WrapperDescriptorType,
     'MethodDescriptorType': MethodDescriptorType,
@@ -802,7 +813,10 @@ def save_module(pickler, obj):
     # if a module file name starts with this, it should be a standard module,
     # so should be pickled as a reference
     prefix = sys.base_prefix if PY3 else sys.prefix
-    std_mod = getattr(obj, "__file__", prefix).startswith(prefix)
+    try:
+        std_mod = getsattr(obj, "__file__").startswith(prefix)
+    except:
+        std_mod = True
     if obj.__name__ not in ("builtins", "dill") \
        and not std_mod or is_dill(pickler) and obj is pickler._main_module:
         log.info("M1: %s" % obj)

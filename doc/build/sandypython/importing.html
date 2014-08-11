@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sandypython.importing &mdash; SandyPython 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="top" title="SandyPython 1.0.0 documentation" href="../index.html" />
+    <link rel="up" title="sandypython" href="../sandypython.html" />
+    <link rel="prev" title="sandypython.safe_dill" href="safe_dill.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="safe_dill.html" title="sandypython.safe_dill"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../sandypython.html" accesskey="U">sandypython</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-sandypython.importing">
+<span id="sandypython-importing"></span><h1>sandypython.importing<a class="headerlink" href="#module-sandypython.importing" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="sandypython.importing.import_filter_by_name">
+<tt class="descclassname">sandypython.importing.</tt><tt class="descname">import_filter_by_name</tt><big>(</big><em>allowed_map</em><big>)</big><a class="reference internal" href="../_modules/sandypython/importing.html#import_filter_by_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.importing.import_filter_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter for <a class="reference internal" href="#sandypython.importing.checked_importer" title="sandypython.importing.checked_importer"><tt class="xref py py-func docutils literal"><span class="pre">checked_importer()</span></tt></a> which takes a dict of paths against
+allowed names. The &#8220;default&#8221; key represents the modules all code can
+import.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">imp_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s">&quot;./badcode/*.py&quot;</span><span class="p">):</span> <span class="p">[</span><span class="s">&quot;./badcode/*.py&quot;</span><span class="p">],</span>
+           <span class="s">&quot;default&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;sys&quot;</span><span class="p">]}</span>
+<span class="n">i</span> <span class="o">=</span> <span class="n">import_filter_by_name</span><span class="p">(</span><span class="n">imp_map</span><span class="p">)</span>
+<span class="n">i</span><span class="p">(</span><span class="s">&quot;sys&quot;</span><span class="p">,</span> <span class="s">&quot;random place&quot;</span><span class="p">,</span> <span class="s">&quot;doesn&#39;t matter&quot;</span><span class="p">)</span>  <span class="c"># True</span>
+<span class="n">i</span><span class="p">(</span><span class="s">&quot;a_mod&quot;</span><span class="p">,</span> <span class="s">&quot;random place&quot;</span><span class="p">,</span> <span class="s">&quot;doesn&#39;t matter&quot;</span><span class="p">)</span>  <span class="c"># False</span>
+<span class="n">i</span><span class="p">(</span><span class="s">&quot;a_mod&quot;</span><span class="p">,</span> <span class="s">&quot;./badcode/a_mod_importer.py&quot;</span><span class="p">,</span> <span class="s">&quot;doesn&#39;t matter&quot;</span><span class="p">)</span>  <span class="c"># True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.importing.import_filter_by_path">
+<tt class="descclassname">sandypython.importing.</tt><tt class="descname">import_filter_by_path</tt><big>(</big><em>allowed_map</em><big>)</big><a class="reference internal" href="../_modules/sandypython/importing.html#import_filter_by_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.importing.import_filter_by_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter for <a class="reference internal" href="#sandypython.importing.checked_importer" title="sandypython.importing.checked_importer"><tt class="xref py py-func docutils literal"><span class="pre">checked_importer()</span></tt></a> which takes a dict of paths against
+allowed import paths. The &#8220;default&#8221; key represents the modules all code can
+import.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">imp_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s">&quot;./*.py&quot;</span><span class="p">):</span> <span class="p">[</span><span class="s">&quot;/*.py&quot;</span><span class="p">],</span>
+           <span class="s">&quot;default&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;./*.py&quot;</span><span class="p">]}</span>
+<span class="n">i</span> <span class="o">=</span> <span class="n">import_filter_by_path</span><span class="p">(</span><span class="n">imp_map</span><span class="p">)</span>
+<span class="n">i</span><span class="p">(</span><span class="s">&quot;sys&quot;</span><span class="p">,</span> <span class="s">&quot;random place&quot;</span><span class="p">,</span> <span class="s">&quot;/usr/lib/python3.4/sys.py&quot;</span><span class="p">)</span>  <span class="c"># False</span>
+<span class="n">i</span><span class="p">(</span><span class="s">&quot;a_mod&quot;</span><span class="p">,</span> <span class="s">&quot;random place&quot;</span><span class="p">,</span> <span class="s">&quot;./a_mod.py&quot;</span><span class="p">)</span>  <span class="c"># True</span>
+<span class="n">i</span><span class="p">(</span><span class="s">&quot;a_mod&quot;</span><span class="p">,</span> <span class="s">&quot;./a_mod_importer.py&quot;</span><span class="p">,</span> <span class="s">&quot;/usr/lib/python3.4/sys.py&quot;</span><span class="p">)</span>  <span class="c"># True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.importing.checked_importer">
+<tt class="descclassname">sandypython.importing.</tt><tt class="descname">checked_importer</tt><big>(</big><em>imp_filter</em>, <em>noise=False</em><big>)</big><a class="reference internal" href="../_modules/sandypython/importing.html#checked_importer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.importing.checked_importer" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>imp_filter</strong> (<em>function</em>) &#8211; function that should take the name of the module to
+import, the path of the code importing the module and the path to
+the module, and return a boolean indicating whether the import is
+allowed or not</li>
+<li><strong>noise</strong> (<em>bool</em>) &#8211; enables extra logging info</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Importer that can be used to replace __import__.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">core</span><span class="o">.</span><span class="n">add_builtin</span><span class="p">(</span><span class="s">&quot;__import__&quot;</span><span class="p">,</span> <span class="n">importing</span><span class="o">.</span><span class="n">checked_importer</span><span class="p">(</span><span class="n">imp_filter</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="safe_dill.html"
+                        title="previous chapter">sandypython.safe_dill</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/sandypython/importing.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="safe_dill.html" title="sandypython.safe_dill"
+             >previous</a> |</li>
+        <li><a href="../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../sandypython.html" >sandypython</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Matthew Joyce.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

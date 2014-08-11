@@ -471,6 +471,11 @@ class _Pickler:
             self.write(self.get(x[0]))
             return
 
+        if id(obj) in safe_dill.sandy_func_list:
+            self.save_reduce(safe_dill.retrive_sf,
+                             (safe_dill.sandy_func_list[id(obj)][0],))
+            return
+
         # Check the type dispatch table
         t = type(obj)
         f = self.dispatch.get(t)
