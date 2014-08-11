@@ -1,5 +1,5 @@
 from types import FunctionType
-from .. import core
+from .. import core, importing
 import sys
 import os
 
@@ -87,9 +87,9 @@ def _import_module(import_name, safe=False):
         raise ImportError("'%s' is restricted" % module)
     try:
         if obj:
-            return getattr(__import__(module, None, None, [obj]), obj)
+            return getattr(importing.do_import(module_path, module, None, None, [obj]), obj)
         else:
-            return __import__(module)
+            return importing.do_import(module_path, module)
     except (ImportError, AttributeError):
         if not safe:
             raise

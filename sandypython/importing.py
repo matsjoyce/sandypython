@@ -3,8 +3,8 @@ import inspect
 import os
 import sys
 import types
-from .utils import DeactivateSandbox, type_checker_annotated, colorf
-from . import core
+from .utils import DeactivateSandbox, colorf
+from . import core, verify
 
 modules = {}
 
@@ -63,7 +63,7 @@ def import_filter_by_path(allowed_map):
     return filter
 
 
-def do_import(filename, name, globals, locals, fromlist, level):
+def do_import(filename, name, globals={}, locals={}, fromlist=None, level=0):
     if filename == "":
         mod = __import__(name, globals, locals, (), level)
         if hasattr(mod, "__loader__"):
@@ -104,7 +104,7 @@ def checked_importer(imp_filter, noise=False):
 
         core.replace_builtin("__import__", utils.checked_importer(imp_filter))
     """
-    @type_checker_annotated
+    @verify.argschecker_ann
     def controlled_importer(name: str, globals: (dict, None)=None,
                             locals: (dict, None)=None,
                             fromlist: (tuple, list, None)=(), level: int=0):

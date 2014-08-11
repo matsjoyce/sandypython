@@ -5,24 +5,7 @@ import os
 sys.path.insert(0, "./badcode")
 
 
-class A:
-    def f(self, f):
-        return f
-    b = 1
-
-
-class B(A):
-    pass
-
-
-def has_a_got_a():
-    if hasattr(A, "a"):
-        print(A.a)
-        return True
-    return False
-
-
-@utils.check_builtins
+@verify.argschecker()
 def prnt():
     with utils.DeactivateSandbox():
         import sys
@@ -31,7 +14,7 @@ def prnt():
         print("getme.txt ==>", "'%s'" % open("getme.txt").read())
 
 
-@utils.check_builtins
+@verify.argschecker(__args__=verify.Sequence(tuple, verify.Any()), end=str, sep=str)
 def printer(*args, **kwargs):
     s = " ".join([str(i) for i in args])
     kwargs["flush"] = True
@@ -42,17 +25,18 @@ cols = {i: j for i, j in zip(("black", "red", "green", "yellow", "blue",
                               "magenta", "cyan", "white"), range(30, 38))}
 
 
-@utils.check_builtins
+@verify.argschecker(__args__=verify.Sequence(tuple, verify.Any()), color=str)
 def colorfy(*args, color="green"):
     return "\033[1;{color}m{msg}\033[1;m".format(msg=" ".join(
         [str(i)for i in args]), color=cols[color])
 
 
-@utils.type_checker(a=(int, dict, list, None), b=str, c=str)
+@verify.argschecker(a=(int, dict, list, None), b=str, c=str)
 def h(a, b, c=""):
     return str(a) + b + c
 
 
+@verify.argschecker(s=verify.Any())
 def loads(s):
     return safe_dill.loads(s)
 
@@ -66,11 +50,9 @@ bad_code = open("badcode/bad_code%s.py" % sys.argv[1]).read()
 core.add_to_exec_globals("prnt", prnt)
 core.add_to_exec_globals("h", h)
 core.add_to_exec_globals("colorfy", colorfy)
-# core.add_to_exec_globals("save", lambda: safe_dill.save())
-# core.add_to_exec_globals("load", safe_dill.load)
-# core.add_to_exec_globals("loads", loads)
-core.add_to_exec_globals("A", A)
-core.add_to_exec_globals("has_a_got_a", has_a_got_a)
+core.add_to_exec_globals("save", safe_dill.save)
+core.add_to_exec_globals("load", safe_dill.load)
+core.add_to_exec_globals("loads", loads)
 
 imp_filter = importing.import_filter_by_path(imp_map)
 safe_dill.set_safe_modules(imp_filter)

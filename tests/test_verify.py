@@ -3,19 +3,6 @@ from sandypython.verify import *
 
 
 class TestVerify(unittest.TestCase):
-    def assertNotRaises(self):
-        class NR:
-            def __init__(self, master):
-                self.master = master
-
-            def __enter__(self):
-                pass
-
-            def __exit__(self, type, value, traceback):
-                if type:
-                    self.master.fail("It raised a {}({})".format(type, value))
-        return NR(self)
-
     def setUp(self):
         class WierdObj:
             a = 1
@@ -71,65 +58,9 @@ class TestVerify(unittest.TestCase):
         self.assertEqual(verifyobj(f), ("key '__module__' has failed "
                                         "verification", f))
 
-    def test_arg_checker(self):
-        @argschecker(a=(int, dict, list, None), b=str, c=str)
-        def h(a, b, c=""):
-            return str(a) + b + c
-
-        with self.assertNotRaises():
-            h(0, "", "")  # should work
-        with self.assertRaises(RuntimeError):
-            h(0, 0, "")
-        # with self.assertRaises(RuntimeError):
-        #     class str(__builtins__["str"]):
-        #         pass
-        #     __builtins__["str"] = str
-        #     h(0, str(), "hi")
-        with self.assertNotRaises():
-            h(c="hoo", a=0, b="boo")
-        with self.assertNotRaises():
-            h(0, b="mushroom", c="crumple")
-        with self.assertRaises(RuntimeError):
-            h("", b="bear", c="sandbag")
-        with self.assertNotRaises():
-            h({}, b="box", c=" of sand")
-
-        A, WierdObj = self.A, self.WierdObj
-
-        @argschecker(a=(A, None), b=str, c=WierdObj)
-        def h(a, b, c=WierdObj()):
-            return 1, 2, 3
-
-        with self.assertNotRaises():
-            h(A(1), "")
-        a = A(2)
-        a.a = 5
-        with self.assertNotRaises():
-            h(a, "a")
-        f = A.f
-        A.f = self.test_verifyobj
-        with self.assertRaises(RuntimeError):
-            h(A(1), "hi")
-        A.f = f
-        WierdObj.a = 2
-        with self.assertNotRaises():
-            h(A(1), "hi")
-            h(A(1), "hi", WierdObj())
-        WierdObj.a = ""
-        with self.assertRaises(RuntimeError):
-            h(A(1), "hi", WierdObj())
-        WierdObj.a = 2
-
-        A.f.x = 1
-        with self.assertRaises(RuntimeError):
-            h(A(1), "hi", WierdObj())
-        del A.f.x
-        A.f.__module__ = WierdObj()
-        with self.assertRaises(RuntimeError):
-            h(A(1), "hi", WierdObj())
-
 if __name__ == "__main__":
     tv = TestVerify()
     tv.setUp()
     tv.test_verifyobj()
     tv.test_arg_checker()
+    tv.test_arg_checker_ann()

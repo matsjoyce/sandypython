@@ -199,15 +199,42 @@ def argschecker(**verify_data):
         def arg_checked_func(*args, **kwargs):
             for i, j in zip(args, args_names):
                 kwargs[j] = i
+            kwargs_cpy = kwargs.copy()
+            if len(args) > len(args_names):
+                args = kwargs_cpy["__args__"] = tuple(args[len(args_names):])
+            else:
+                args = ()
 
-            v = verifyargs(func, kwargs)
+            v = verifyargs(func, kwargs_cpy)
             if v:
                 raise RuntimeError("Argument verification"
                                    " of arg '{1}' failed: {0}".format(*v))
 
-            return func(**kwargs)
+            return func(*args, **kwargs)
         return arg_checked_func
     return savkw
+
+
+def argschecker_ann(func):
+    setargsverify(func, **func.__annotations__)
+    args_names = inspect.getfullargspec(func)[0]
+
+    def arg_checked_func(*args, **kwargs):
+        for i, j in zip(args, args_names):
+            kwargs[j] = i
+        kwargs_cpy = kwargs.copy()
+        if len(args) > len(args_names):
+            args = kwargs_cpy["__args__"] = tuple(args[len(args_names):])
+        else:
+            args = ()
+
+        v = verifyargs(func, kwargs_cpy)
+        if v:
+            raise RuntimeError("Argument verification"
+                                " of arg '{1}' failed: {0}".format(*v))
+
+        return func(*args, **kwargs)
+    return arg_checked_func
 
 
 def verifyinst(obj):
@@ -293,7 +320,14 @@ def verifyargs(func, args):
             if v:
                 return v, key
         else:
-            return "key '{}' not in verify data".format(key), key
+            if "__kwargs__" in verdat:
+                if not verdat["__kwargs__"].matches(value):
+                    return "key '{}' has failed verification".format(key), key
+                v = verifyobj(value)
+                if v:
+                    return v, key
+            else:
+                return "key '{}' not in verify data".format(key), key
 
 
 def generatetypeverify(typ):
