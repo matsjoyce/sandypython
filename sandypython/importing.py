@@ -72,20 +72,17 @@ def do_import(filename, name, globals={}, locals={}, fromlist=None, level=0):
             del mod.__spec__
         mod.__builtins__ = __builtins__
         return __import__(name, globals, locals, fromlist, level)
-    if name in modules:
-        return modules[name]
-    mod = types.ModuleType(name)
-    mod.__package__ = mod.__name__ = name
-    mod.__file__ = filename
-    modules[name] = mod
-    code = open(filename).read()
-    for k, v in core.begin_globals.items():
-        mod.__dict__[k] = v
-    exec(code, mod.__dict__, mod.__dict__)
-    if fromlist:
-        return [getattr(mod, n) for n in fromlist]
-    else:
-        return mod
+    if name not in modules:
+        mod = types.ModuleType(name)
+        mod.__package__ = mod.__name__ = name
+        mod.__file__ = filename
+        modules[name] = mod
+        code = open(filename).read()
+        for k, v in core.begin_globals.items():
+            mod.__dict__[k] = v
+        exec(code, mod.__dict__, mod.__dict__)
+    mod = modules[name]
+    return mod
 
 
 def checked_importer(imp_filter, noise=False):

@@ -23,8 +23,6 @@ def save(filename="/tmp/sand.pkl"):
         a = set(list(core.exec_globals.keys()))
         core.exec_globals.pop("__builtins__")
         core.exec_globals.pop("__sand__")
-        # for i in core.added_to_execgs:
-            # core.exec_globals.pop(i)
 
         pickler.dump(core.exec_globals)
 

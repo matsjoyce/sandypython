@@ -28,3 +28,5 @@ class TestControlledImporter(unittest.TestCase):
             f("sys")
         with self.assertRaises(ImportError):
             f("kivy")
+        f("__sand__")
+        self.assertEqual(f("a_mod", fromlist=("a", "b")), f("a_mod"))

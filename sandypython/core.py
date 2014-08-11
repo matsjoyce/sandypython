@@ -187,6 +187,4 @@ def reset():
     global restricted, replaced, _on_start, _on_end
     restricted = {}
     replaced = {}
-    _on_start = []
-    _on_end = []
     clean_exec_globals()

@@ -63,7 +63,7 @@ class TestTypeChecker(tcase.TestCase):
         with self.assertNotRaises():
             h(a, "a")
         f = A.f
-        A.f = self.test_verifyobj
+        A.f = self.setUp
         with self.assertRaises(RuntimeError):
             h(A(1), "hi")
         A.f = f
@@ -141,7 +141,7 @@ class TestTypeChecker(tcase.TestCase):
         with self.assertNotRaises():
             h(a, "a")
         f = A.f
-        A.f = self.test_verifyobj
+        A.f = self.setUp
         with self.assertRaises(RuntimeError):
             h(A(1), "hi")
         A.f = f
@@ -176,6 +176,21 @@ class TestTypeChecker(tcase.TestCase):
             f(a="a", b="b")
         with self.assertNotRaises():
             f("a", "b", "c", d="d", e="e")
+        with self.assertRaises(RuntimeError):
+            f(1, 2)
+        with self.assertRaises(RuntimeError):
+            f(a=1, d=2)
+        with self.assertRaises(RuntimeError):
+            f(1, 2, c=3, d=4)
+
+        @argschecker_ann
+        def f(*__args__: Sequence(tuple, str)):
+            pass
+
+        with self.assertNotRaises():
+            f()
+        with self.assertNotRaises():
+            f("a", "b")
         with self.assertRaises(RuntimeError):
             f(1, 2)
         with self.assertRaises(RuntimeError):

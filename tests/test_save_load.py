@@ -25,19 +25,20 @@ class TestSaveLoad(unittest.TestCase):
         safe_dill.set_safe_modules(importing.import_filter_by_name(imap))
 
     def setup_globs(self):
+        safe_dill.sandy_func_list = {}
         core.add_default_builtins()
         core.add_to_exec_globals("load",
-                                 safe_dill.load,
-                                 check_protected=False)
+                                 safe_dill.load)
         core.add_to_exec_globals("save",
-                                 safe_dill.save,
-                                 check_protected=False)
+                                 safe_dill.save)
         imap = {"default": ["a_mod", "__sand__"]}
         core.add_builtin("__import__",
                          importing.checked_importer(
                              importing.import_filter_by_name(imap)),
                          check_protected=False)
         core.clean_exec_globals()
+        safe_dill.make_sandy_func_list(force=True)
+        print(safe_dill.sandy_func_list)
 
     def test_save_load(self):
         self.setup_globs()

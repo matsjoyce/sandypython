@@ -39,15 +39,14 @@ def scan(name, obj, seen, lst):
             pass
 
 
-def make_sandy_func_list():
+def make_sandy_func_list(force=False):
     global sandy_func_list
-    if not sandy_func_list:
+    if not sandy_func_list or force:
         seen = set()
         lst = {}
         for name, obj in core.begin_globals.items():
             scan(name, obj, seen, lst)
         sandy_func_list = lst
-        print(lst)
 
 
 def set_safe_modules(safe_mods):
@@ -87,7 +86,8 @@ def _import_module(import_name, safe=False):
         raise ImportError("'%s' is restricted" % module)
     try:
         if obj:
-            return getattr(importing.do_import(module_path, module, None, None, [obj]), obj)
+            return getattr(importing.do_import(module_path, module, None,
+                                               None, [obj]), obj)
         else:
             return importing.do_import(module_path, module)
     except (ImportError, AttributeError):

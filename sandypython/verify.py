@@ -47,6 +47,11 @@ inst_nover = {str, int, bool, range, type(any), bytearray, float,
 noise = False
 
 
+def debug():
+    global noise
+    noise = True
+
+
 def printer(*args, **kwargs):
     if noise:
         return print(*args, **kwargs)
@@ -74,17 +79,13 @@ class Matcher(metaclass=ABCMeta):
 
 
 class Matchtype(Matcher):
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, type_):
+        assert isinstance(type_, type)
+        self.type = type_
 
     def matches(self, obj):
         if obj is None:
-            if self.type is None:
-                return True
-            return getsattr(self.type, "__class__") is tuple \
-                and None in self.type
-        elif getsattr(self.type, "__class__") is tuple:
-            return type(obj) in self.type
+            return self.type is None
         return getsattr(self.type, "__class__") is type \
             and type(obj) is self.type
 
@@ -112,33 +113,42 @@ class Shared(Matcher):
 
 
 class Sequence(Matchtype):
-    def __init__(self, type, item_matcher):
-        super().__init__(type)
+    def __init__(self, type_matcher, item_matcher):
+        self.type_matcher = check_matcher(type_matcher)
         self.item_matcher = check_matcher(item_matcher)
 
     def matches(self, obj):
-        if not super().matches(obj):
+        if not self.type_matcher.matches(obj):
             return False
         for i in obj:
             if not self.item_matcher.matches(i):
                 return False
         return True
 
+    def __repr__(self):
+        return "{}({}({}))".format(self.__class__.__name__, self.type_matcher,
+                                   self.item_matcher)
+
 
 class Mapping(Matchtype):
-    def __init__(self, type, key_matcher, value_matcher):
-        self.type = type
+    def __init__(self, type_matcher, key_matcher, value_matcher):
+        self.type_matcher = check_matcher(type_matcher)
         self.key_matcher = check_matcher(key_matcher)
         self.value_matcher = check_matcher(value_matcher)
 
     def matches(self, obj):
-        if not super().matches(obj):
+        if not self.type_matcher.matches(obj):
             return False
         for key, val in obj.items():
             if not (self.key_matcher.matches(key)
-               or self.value_matcher.matches(val)):
+               and self.value_matcher.matches(val)):
                 return False
         return True
+
+    def __repr__(self):
+        return "{}({}({}: {}))".format(self.__class__.__name__,
+                                       self.type_matcher, self.key_matcher,
+                                       self.value_matcher)
 
 
 class Any(Matcher):
@@ -188,7 +198,8 @@ def setargsverify(func, **verify_data):
                    for key, matcher in verify_data.items()}
     func_args_ver[func] = verify_data
 
-checked_func_names = "arg_checked_func", "check_builtins_wrapper", "type_checker_wrapper"
+checked_func_names = ("arg_checked_func", "check_builtins_wrapper",
+                      "type_checker_wrapper")
 
 
 def argschecker(**verify_data):
@@ -231,7 +242,7 @@ def argschecker_ann(func):
         v = verifyargs(func, kwargs_cpy)
         if v:
             raise RuntimeError("Argument verification"
-                                " of arg '{1}' failed: {0}".format(*v))
+                               " of arg '{1}' failed: {0}".format(*v))
 
         return func(*args, **kwargs)
     return arg_checked_func

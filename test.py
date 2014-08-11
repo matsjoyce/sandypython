@@ -14,7 +14,8 @@ def prnt():
         print("getme.txt ==>", "'%s'" % open("getme.txt").read())
 
 
-@verify.argschecker(__args__=verify.Sequence(tuple, verify.Any()), end=str, sep=str)
+@verify.argschecker(__args__=verify.Sequence(tuple, verify.Any()),
+                    end=str, sep=str)
 def printer(*args, **kwargs):
     s = " ".join([str(i) for i in args])
     kwargs["flush"] = True
