@@ -6,6 +6,10 @@ import types
 from .utils import DeactivateSandbox, colorf
 from . import core, verify
 
+
+__all__ = ["import_filter_by_name", "import_filter_by_path",
+           "checked_importer"]
+
 modules = {}
 
 
@@ -99,7 +103,7 @@ def checked_importer(imp_filter, noise=False):
 
     Example::
 
-        core.replace_builtin("__import__", utils.checked_importer(imp_filter))
+        core.add_builtin("__import__", importing.checked_importer(imp_filter))
     """
     @verify.argschecker_ann
     def controlled_importer(name: str, globals: (dict, None)=None,

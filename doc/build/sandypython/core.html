@@ -58,42 +58,22 @@
   <div class="section" id="module-sandypython.core">
 <span id="sandypython-core"></span><h1>sandypython.core<a class="headerlink" href="#module-sandypython.core" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="sandypython.core.restrict">
-<tt class="descclassname">sandypython.core.</tt><tt class="descname">restrict</tt><big>(</big><em>module</em>, <em>name</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#restrict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.restrict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add <cite>name</cite> of <cite>module</cite> to the list of module members to remove on
-starting the sandbox</p>
-<p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">restrict</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="s">&quot;any&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<dt id="sandypython.core.add_to_exec_globals">
+<tt class="descclassname">sandypython.core.</tt><tt class="descname">add_to_exec_globals</tt><big>(</big><em>name</em>, <em>obj</em>, <em>check_protected=True</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#add_to_exec_globals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.add_to_exec_globals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an object which can be accessed by the sandboxed code as a global.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="sandypython.core.allow">
-<tt class="descclassname">sandypython.core.</tt><tt class="descname">allow</tt><big>(</big><em>module</em>, <em>name</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#allow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.allow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove <cite>name</cite> of <cite>module</cite> to the list of module members to remove on
-starting the sandbox</p>
-<p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">allow</span><span class="p">(</span><span class="s">&quot;allow&quot;</span><span class="p">,</span> <span class="s">&quot;type&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<dt id="sandypython.core.get_from_exec_globals">
+<tt class="descclassname">sandypython.core.</tt><tt class="descname">get_from_exec_globals</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#get_from_exec_globals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.get_from_exec_globals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets an object from the sandbox globals.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="sandypython.core.replace">
-<tt class="descclassname">sandypython.core.</tt><tt class="descname">replace</tt><big>(</big><em>module</em>, <em>name</em>, <em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.replace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add <cite>name</cite> of <cite>module</cite> to the list of module members to replace on
-starting the sandbox</p>
-<p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">replace</span><span class="p">(</span><span class="s">&quot;builtins&quot;</span><span class="p">,</span> <span class="s">&quot;print&quot;</span><span class="p">,</span> <span class="n">my_printer</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="sandypython.core.allow_builtin">
-<tt class="descclassname">sandypython.core.</tt><tt class="descname">allow_builtin</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#allow_builtin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.allow_builtin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Equivalent to <a class="reference internal" href="#sandypython.core.allow" title="sandypython.core.allow"><tt class="xref py py-func docutils literal"><span class="pre">allow()</span></tt></a>, with <cite>module</cite> being <cite>builtins</cite></p>
+<dt id="sandypython.core.add_builtin">
+<tt class="descclassname">sandypython.core.</tt><tt class="descname">add_builtin</tt><big>(</big><em>name</em>, <em>obj=None</em>, <em>check_protected=True</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#add_builtin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.add_builtin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an object which can be accessed by the sandboxed code under
+__builtins__.</p>
 <p>Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">allow_builtin</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">)</span>
 </pre></div>
@@ -101,25 +81,9 @@ starting the sandbox</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="sandypython.core.allow_defaults">
-<tt class="descclassname">sandypython.core.</tt><tt class="descname">allow_defaults</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#allow_defaults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.allow_defaults" title="Permalink to this definition">¶</a></dt>
+<dt id="sandypython.core.add_default_builtins">
+<tt class="descclassname">sandypython.core.</tt><tt class="descname">add_default_builtins</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#add_default_builtins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.add_default_builtins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Allow a default list of builtins that are considered to be safe</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="sandypython.core.replace_builtin">
-<tt class="descclassname">sandypython.core.</tt><tt class="descname">replace_builtin</tt><big>(</big><em>name</em>, <em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#replace_builtin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.replace_builtin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Equivalent to <a class="reference internal" href="#sandypython.core.replace" title="sandypython.core.replace"><tt class="xref py py-func docutils literal"><span class="pre">replace()</span></tt></a>, with <cite>module</cite> being <cite>builtins</cite></p>
-<p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">replace_builtin</span><span class="p">(</span><span class="s">&quot;__import__&quot;</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">checked_imported</span><span class="p">(</span><span class="n">imp_map</span><span class="p">))</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="sandypython.core.add_to_exec_globals">
-<tt class="descclassname">sandypython.core.</tt><tt class="descname">add_to_exec_globals</tt><big>(</big><em>name</em>, <em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#add_to_exec_globals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.add_to_exec_globals" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds an object which can be accessed by the sandboxed code as a global.</p>
 </dd></dl>
 
 <dl class="function">
@@ -148,14 +112,6 @@ that before <a class="reference internal" href="#sandypython.core.start_sandbox"
 <tt class="descclassname">sandypython.core.</tt><tt class="descname">exec_str</tt><big>(</big><em>code_str</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#exec_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.exec_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Executes <cite>code_str</cite> under the sandbox. <a class="reference internal" href="#sandypython.core.start_sandbox" title="sandypython.core.start_sandbox"><tt class="xref py py-func docutils literal"><span class="pre">start_sandbox()</span></tt></a> is called
 before executing the string.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="sandypython.core.detamper_builtins">
-<tt class="descclassname">sandypython.core.</tt><tt class="descname">detamper_builtins</tt><big>(</big><em>force=False</em><big>)</big><a class="reference internal" href="../_modules/sandypython/core.html#detamper_builtins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.core.detamper_builtins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks the members of the builtins module to make sure that they are the
-same as before the code was executed.</p>
-<p>Also see <a class="reference internal" href="utils.html#sandypython.utils.check_builtins" title="sandypython.utils.check_builtins"><tt class="xref py py-class docutils literal"><span class="pre">sandypython.utils.check_builtins</span></tt></a></p>
 </dd></dl>
 
 <dl class="function">

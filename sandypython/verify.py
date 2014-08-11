@@ -3,6 +3,11 @@ from .spec import getsattr
 import types
 import inspect
 
+__all__ = ["Matcher", "Matchtype", "Shared", "Sequence", "Mapping", "Any",
+           "AnyOf", "AllOf", "setinstverify", "settypeverify", "setargsverify",
+           "argschecker", "argschecker_ann", "verifyobj", "verifyargs",
+           "generateinstverify", "generatetypeverify"]
+
 func_args_ver = {}  # dict of function to signature data
 
 # dict of type to verification data
@@ -69,6 +74,19 @@ def check_matcher(matcher):
 
 
 class Matcher(metaclass=ABCMeta):
+    """
+    Base class for matchers. You should inherit from this when creating
+    custom matchers.
+
+    Example::
+
+        class MyMatcher(Matcher):
+            def matches(self, obj):
+                return obj == magic_global_obj
+
+            def __repr__(self):
+                return "{}()".format(self.__class__.__name__)
+    """
     @abstractmethod
     def matches(self, obj) -> bool:
         pass
@@ -79,6 +97,18 @@ class Matcher(metaclass=ABCMeta):
 
 
 class Matchtype(Matcher):
+    """
+    Matcher which returns True when type(obj) == type given in constructer.
+
+    Example::
+
+        m = Matchtype(str)
+        m.matches("a")  # True
+        m.matches(1)  # False
+
+    Shortcut: `settypeverify(A, a=str)` is equivelent to
+    `settypeverify(A, a=Matchtype(str))`
+    """
     def __init__(self, type_):
         assert isinstance(type_, type)
         self.type = type_
@@ -94,6 +124,17 @@ class Matchtype(Matcher):
 
 
 class Shared(Matcher):
+    """
+    Matcher which returns True when obj == obj given in constructer.
+
+    Example::
+
+        def f():
+            pass
+        m = Shared(f)
+        m.matches(f)  # True
+        m.matches(g)  # False
+    """
     def __init__(self, obj):
         self.obj = obj
 
@@ -113,6 +154,17 @@ class Shared(Matcher):
 
 
 class Sequence(Matchtype):
+    """
+    Matcher which returns True when a sequence type matches `type_matcher`
+    and all the items match `item_matcher`.
+
+    Example::
+
+        s = Sequence(list, str)
+        s.matches(["a", "b", "c"])  # True
+        s.matches(["a", "b", 1])  # False
+        s.matches(("a", "b"))  # False
+    """
     def __init__(self, type_matcher, item_matcher):
         self.type_matcher = check_matcher(type_matcher)
         self.item_matcher = check_matcher(item_matcher)
@@ -131,6 +183,18 @@ class Sequence(Matchtype):
 
 
 class Mapping(Matchtype):
+    """
+    Matcher which returns True when a sequence type matches `type_matcher`
+    and all the keys match `key_matcher` and the values match `value_matcher`.
+
+    Example::
+
+        s = Mapping(dict, str, int)
+        s.matches({"a": 1, "b": 2, "c": 3})  # True
+        s.matches({"a": 1, "b": 2, 1: 3})  # False
+        s.matches(("a", "b"))  # False
+        s.matches({"a": 1, "b": 2, "c": "d"})  # False
+    """
     def __init__(self, type_matcher, key_matcher, value_matcher):
         self.type_matcher = check_matcher(type_matcher)
         self.key_matcher = check_matcher(key_matcher)
@@ -152,6 +216,16 @@ class Mapping(Matchtype):
 
 
 class Any(Matcher):
+    """
+    Matcher which returns True for anything.
+
+    Example::
+
+        a = Any()
+        a.matches({"a": 1, "b": 2, "c": 3})  # True
+        a.matches(["a", "b", "c"])  # True
+        a.matches(False)  # True
+    """
     def matches(self, obj):
         return True
 
@@ -160,6 +234,19 @@ class Any(Matcher):
 
 
 class AnyOf(Matcher):
+    """
+    Matcher which returns True if any of the matchers given in the
+    constructed match.
+
+    Example::
+
+        a = AnyOf((dict, list))
+        a.matches({"a": 1, "b": 2, "c": 3})  # True
+        a.matches(["a", "b", "c"])  # True
+        a.matches({False, True})  # False
+
+    Shortcut: A tuple of matchers is equivalent to this type
+    """
     def __init__(self, matchers):
         self.matchers = [check_matcher(m) for m in matchers]
 
@@ -171,6 +258,18 @@ class AnyOf(Matcher):
 
 
 class AllOf(Matcher):
+    """
+    Matcher which returns True if all of the matchers given in the
+    constructed match.
+
+    Example::
+
+        a = AllOf((dict, Any(), Mapping(dict, str, int)))
+        a.matches({"a": 1, "b": 2, "c": 3})  # True
+        a.matches({"a": 1, "b": 2, 1: 3})  # False
+        a.matches(("a", "b"))  # False
+        a.matches({"a": 1, "b": 2, "c": "d"})  # False
+    """
     def __init__(self, matchers):
         self.matchers = [check_matcher(m) for m in matchers]
 
@@ -182,18 +281,41 @@ class AllOf(Matcher):
 
 
 def setinstverify(type, **verify_data):
+    """
+    Adds verification data for an instance of type for later use by
+    :func:`verifyobj`.
+
+    Example::
+
+        setinstverify(WierdObj, __weakref__=None, a=str, b=(int, dict))
+    """
     verify_data = {key: check_matcher(matcher)
                    for key, matcher in verify_data.items()}
     inst_ver[type] = verify_data
 
 
 def settypeverify(type, **verify_data):
+    """
+    Adds verification data for a type for later use by :func:`verifyobj`.
+
+    Example::
+
+        settypeverify(WierdObj, a=int, __module__=str, __doc__=(None, str),
+                      __init__=Shared(WierdObj.__init__),
+                      __weakref__=Shared(WierdObj.__weakref__),
+                      __dict__=Shared(WierdObj.__dict__))
+    """
     verify_data = {key: check_matcher(matcher)
                    for key, matcher in verify_data.items()}
     type_ver[type] = verify_data
 
 
 def setargsverify(func, **verify_data):
+    """
+    Adds verification data for a function's args for later use by
+    :func:`verifyargs`. This function is best used though
+    :func:`argschecker` or :func:`argschecker_ann`
+    """
     verify_data = {key: check_matcher(matcher)
                    for key, matcher in verify_data.items()}
     func_args_ver[func] = verify_data
@@ -203,6 +325,20 @@ checked_func_names = ("arg_checked_func", "check_builtins_wrapper",
 
 
 def argschecker(**verify_data):
+    """
+    Checks the types of all arguments against what is expected, and raises
+    :class:`RuntimeError` if they do not. It can be used to ensure no malicious
+    types can enter a function that lifts the sandbox. It takes the matchers in
+    kwarg form. `__args__` can be used to check `*args` and `__kwargs__` can be
+    used to check `**kwargs`.
+
+    Example::
+
+        @argschecker(self=Any(), a=(int, dict, None), b=str, c=str,
+            __args__=Sequence(tuple, str))
+        def f(self, a, b, *args, c=""):
+            return str(a) + b + c
+    """
     def savkw(func):
         setargsverify(func, **verify_data)
         args_names = inspect.getfullargspec(func)[0]
@@ -227,6 +363,16 @@ def argschecker(**verify_data):
 
 
 def argschecker_ann(func):
+    """
+    Same usage as :func:`argschecker`, but takes the types in annotation form.
+
+    Example::
+
+        @argschecker_ann
+        def f_ann(self: Any(), a: (int, dict, list, None), b: str,
+           *__args__: Sequence(tuple, str), c: str=""):
+            return str(a) + b + c
+    """
     setargsverify(func, **func.__annotations__)
     args_names = inspect.getfullargspec(func)[0]
 
@@ -311,6 +457,12 @@ def verifytype(typ):
 
 
 def verifyobj(obj):
+    """
+    Verifies obj using verification information stored by :func:`setinstverify`
+    and :func:`settypeverify`. Returns None if the object is OK, otherwise
+    returns a tuple of (reason, subojb) where subobj is the attr of obj that
+    failed.
+    """
     printer("Verifing", obj, type(obj))
     if type(obj) is type:
         return verifytype(obj)
@@ -319,6 +471,11 @@ def verifyobj(obj):
 
 
 def verifyargs(func, args):
+    """
+    Verifies the args using verification information stored by
+    :func:`setargsverify`. This function is best used though
+    :func:`argschecker` or :func:`argschecker_ann`
+    """
     assert isinstance(args, dict)
     verdat = func_args_ver[func]
     for key, value in args.items():
@@ -342,6 +499,11 @@ def verifyargs(func, args):
 
 
 def generatetypeverify(typ):
+    """
+    Attempts to generate and set data for :func:`verifyobj`. If the type
+    can change (e.g. class variables that can change), it is best to use
+    :func:`settypeverify`.
+    """
     vd = {}
     for key, value in typ.__dict__.items():
         vd[key] = Shared(value)
@@ -350,6 +512,10 @@ def generatetypeverify(typ):
 
 
 def generateinstverify(example):
+    """
+    Attempts to generate and set data for :func:`verifyobj`. If the instance
+    is not simple, it is best to use :func:`setinstverify`.
+    """
     vd = {}
     for key, value in example.__dict__.items():
         vd[key] = check_matcher(type(value))

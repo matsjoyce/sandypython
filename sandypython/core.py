@@ -3,10 +3,9 @@ from . import spec, verify
 from .fakemod import make_fake_mod
 import types
 
-__all__ = ["restrict", "allow", "replace", "allow_builtin", "allow_defaults",
-           "replace_builtin", "add_to_exec_globals", "start_sandbox",
-           "end_sandbox", "exec_str", "detamper_builtins", "on_start",
-           "on_end", "reset"]
+__all__ = ["add_to_exec_globals", "get_from_exec_globals", "add_builtin",
+           "add_default_builtins", "start_sandbox", "end_sandbox", "exec_str",
+           "on_start", "on_end", "reset"]
 
 restricted = {}
 replaced = {}
@@ -70,14 +69,15 @@ def add_to_exec_globals(name, obj, check_protected=True):
 
 def get_from_exec_globals(name):
     """
-    Gets an object which can be accessed by the sandboxed code as a global.
+    Gets an object from the sandbox globals.
     """
     return begin_globals[name]
 
 
 def add_builtin(name, obj=None, check_protected=True):
     """
-    Equivalent to :func:`allow`, with `module` being `builtins`
+    Adds an object which can be accessed by the sandboxed code under
+    __builtins__.
 
     Example::
 

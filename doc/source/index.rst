@@ -30,18 +30,19 @@ Features
  - Save / load capabillity (though :mod:`sandypython.safe_dill`)
  - Module whitelist
  - Method whitelist for all builtin types
+ - Object modification checking
  - Full sphinx documentation at https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html
 
 Quick start::
 
     from sandypython import *
 
-    core.allow_defaults()
+    core.add_default_builtins()
 
     with utils.ActivateSandbox():
         core.exec_str(bad_code)
 
-For a more complete reference, see the https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html
+For a more complete reference, see the docs at https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html
 
 For those who want a challenge:
 ===============================

@@ -53,12 +53,8 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">ctypes</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">good_special_methods</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">good_normal_methods</span>
-<span class="k">except</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">good_special_methods</span>
-    <span class="kn">import</span> <span class="nn">good_normal_methods</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">good_special_methods</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">good_normal_methods</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;getsattr&quot;</span><span class="p">,</span> <span class="s">&quot;remove_dangerous_attrs&quot;</span><span class="p">,</span> <span class="s">&quot;replace_dangerous_attrs&quot;</span><span class="p">,</span>
            <span class="s">&quot;stats&quot;</span><span class="p">]</span>
@@ -115,7 +111,10 @@
 <span class="sd">            x = getsattr(object, &quot;__subclasses__&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">get_mro</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)))</span> <span class="o">+</span> <span class="p">[</span><span class="nb">type</span><span class="p">]:</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="n">saved</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">saved</span><span class="p">[(</span><span class="n">t</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
@@ -133,12 +132,8 @@
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">method_origin</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
                 <span class="n">not_expressed</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">saved</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
-                <span class="k">del</span> <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&quot;Failed, in remove&quot;</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-                <span class="k">raise</span>
+            <span class="n">saved</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
             <span class="c"># make sure our modifications is mirrored in the types we modify</span>
             <span class="c"># this is a specialised purpose</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">_clear_type_cache</span><span class="p">()</span>
@@ -151,11 +146,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dangerous</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">method_origin</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&quot;Failed, in replace&quot;</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-                <span class="k">raise</span>
+            <span class="n">dictionary_of</span><span class="p">(</span><span class="n">j</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
             <span class="c"># make sure our modifications is mirrored in the types we modify</span>
             <span class="c"># this is a specialised purpose</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">_clear_type_cache</span><span class="p">()</span>
@@ -174,12 +165,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;Found&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">),</span> <span class="s">&quot;methods&quot;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dangerous</span><span class="p">),</span> <span class="s">&quot;marked for removal&quot;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">good_methods</span><span class="p">),</span> <span class="s">&quot;marked as good&quot;</span><span class="p">)</span>
-</div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">stats</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dangerous</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">good_methods</span><span class="p">),</span> <span class="s">&quot;marked as good&quot;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

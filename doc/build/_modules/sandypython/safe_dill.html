@@ -49,7 +49,7 @@
             
   <h1>Source code for sandypython.safe_dill</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">.dill_helper</span> <span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">load</span><span class="p">,</span> <span class="n">set_getsattr</span><span class="p">,</span> <span class="n">unset_getsattr</span>
-<span class="kn">from</span> <span class="nn">.safe_dill</span> <span class="kn">import</span> <span class="n">set_safe_modules</span><span class="p">,</span> <span class="n">init</span>
+<span class="kn">from</span> <span class="nn">.safe_dill</span> <span class="kn">import</span> <span class="n">set_safe_modules</span><span class="p">,</span> <span class="n">init</span><span class="p">,</span> <span class="n">make_sandy_func_list</span>
 <span class="kn">from</span> <span class="nn">.dill</span> <span class="kn">import</span> <span class="n">loads</span><span class="p">,</span> <span class="n">dumps</span><span class="p">,</span> <span class="n">_trace</span> <span class="k">as</span> <span class="n">debug</span><span class="p">,</span> <span class="n">register</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> \
     <span class="n">PicklingError</span><span class="p">,</span> <span class="n">UnpicklingError</span>
 
@@ -58,9 +58,10 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;save&quot;</span><span class="p">,</span> <span class="s">&quot;load&quot;</span><span class="p">,</span> <span class="s">&quot;set_safe_modules&quot;</span><span class="p">,</span> <span class="s">&quot;loads&quot;</span><span class="p">,</span> <span class="s">&quot;dumps&quot;</span><span class="p">,</span> <span class="s">&quot;debug&quot;</span><span class="p">,</span>
            <span class="s">&quot;register&quot;</span><span class="p">,</span> <span class="s">&quot;copy&quot;</span><span class="p">,</span> <span class="s">&quot;PicklingError&quot;</span><span class="p">,</span> <span class="s">&quot;UnpicklingError&quot;</span><span class="p">]</span>
 
-<span class="kn">from</span> <span class="nn">sandypython.core</span> <span class="kn">import</span> <span class="n">on_start</span><span class="p">,</span> <span class="n">on_end</span>
-<span class="n">on_start</span><span class="p">(</span><span class="n">set_getsattr</span><span class="p">)</span>
-<span class="n">on_end</span><span class="p">(</span><span class="n">unset_getsattr</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">core</span>
+<span class="n">core</span><span class="o">.</span><span class="n">on_start</span><span class="p">(</span><span class="n">set_getsattr</span><span class="p">)</span>
+<span class="n">core</span><span class="o">.</span><span class="n">on_end</span><span class="p">(</span><span class="n">unset_getsattr</span><span class="p">)</span>
+<span class="n">core</span><span class="o">.</span><span class="n">on_start</span><span class="p">(</span><span class="n">make_sandy_func_list</span><span class="p">)</span>
 </pre></div>
 
           </div>

@@ -22,13 +22,14 @@ Features
  - Save / load capabillity (though ```sandypython.safe_dill```)
  - Module whitelist
  - Method whitelist for all builtin types
+ - Object modification checking
  - Full sphinx [documentation](https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html)
 
 Quick start:
 ```py3
 from sandypython import *
 
-core.allow_defaults()
+core.add_default_builtins()
 
 with utils.ActivateSandbox():
     core.exec_str(bad_code)

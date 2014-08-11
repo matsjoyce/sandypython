@@ -1,0 +1,630 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sandypython.verify &mdash; SandyPython 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="top" title="SandyPython 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sandypython.verify</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">.spec</span> <span class="kn">import</span> <span class="n">getsattr</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;Matcher&quot;</span><span class="p">,</span> <span class="s">&quot;Matchtype&quot;</span><span class="p">,</span> <span class="s">&quot;Shared&quot;</span><span class="p">,</span> <span class="s">&quot;Sequence&quot;</span><span class="p">,</span> <span class="s">&quot;Mapping&quot;</span><span class="p">,</span> <span class="s">&quot;Any&quot;</span><span class="p">,</span>
+           <span class="s">&quot;AnyOf&quot;</span><span class="p">,</span> <span class="s">&quot;AllOf&quot;</span><span class="p">,</span> <span class="s">&quot;setinstverify&quot;</span><span class="p">,</span> <span class="s">&quot;settypeverify&quot;</span><span class="p">,</span> <span class="s">&quot;setargsverify&quot;</span><span class="p">,</span>
+           <span class="s">&quot;argschecker&quot;</span><span class="p">,</span> <span class="s">&quot;argschecker_ann&quot;</span><span class="p">,</span> <span class="s">&quot;verifyobj&quot;</span><span class="p">,</span> <span class="s">&quot;verifyargs&quot;</span><span class="p">,</span>
+           <span class="s">&quot;generateinstverify&quot;</span><span class="p">,</span> <span class="s">&quot;generatetypeverify&quot;</span><span class="p">]</span>
+
+<span class="n">func_args_ver</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># dict of function to signature data</span>
+
+<span class="c"># dict of type to verification data</span>
+<span class="c"># verification data is a dict of member to type, shared or sequence</span>
+
+<span class="n">type_ver</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># type</span>
+<span class="n">type_nover</span> <span class="o">=</span> <span class="p">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">NotImplemented</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="ne">ArithmeticError</span><span class="p">,</span>
+              <span class="ne">AssertionError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">,</span>
+              <span class="ne">BaseException</span><span class="p">,</span> <span class="n">BlockingIOError</span><span class="p">,</span> <span class="n">BrokenPipeError</span><span class="p">,</span>
+              <span class="n">BufferError</span><span class="p">,</span> <span class="n">BytesWarning</span><span class="p">,</span> <span class="n">ChildProcessError</span><span class="p">,</span>
+              <span class="n">ConnectionAbortedError</span><span class="p">,</span> <span class="n">ConnectionError</span><span class="p">,</span>
+              <span class="n">ConnectionRefusedError</span><span class="p">,</span> <span class="n">ConnectionResetError</span><span class="p">,</span>
+              <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="ne">EOFError</span><span class="p">,</span>
+              <span class="ne">EnvironmentError</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">FileExistsError</span><span class="p">,</span>
+              <span class="n">FileNotFoundError</span><span class="p">,</span> <span class="ne">FloatingPointError</span><span class="p">,</span> <span class="ne">FutureWarning</span><span class="p">,</span>
+              <span class="ne">GeneratorExit</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">,</span> <span class="ne">ImportWarning</span><span class="p">,</span>
+              <span class="ne">IndentationError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">,</span> <span class="n">InterruptedError</span><span class="p">,</span>
+              <span class="n">IsADirectoryError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">,</span>
+              <span class="ne">LookupError</span><span class="p">,</span> <span class="ne">MemoryError</span><span class="p">,</span> <span class="ne">NameError</span><span class="p">,</span>
+              <span class="n">NotADirectoryError</span><span class="p">,</span> <span class="ne">NotImplementedError</span><span class="p">,</span>
+              <span class="ne">OSError</span><span class="p">,</span> <span class="ne">OverflowError</span><span class="p">,</span> <span class="ne">PendingDeprecationWarning</span><span class="p">,</span>
+              <span class="n">PermissionError</span><span class="p">,</span> <span class="n">ProcessLookupError</span><span class="p">,</span> <span class="ne">ReferenceError</span><span class="p">,</span>
+              <span class="n">ResourceWarning</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">,</span>
+              <span class="ne">StopIteration</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">,</span> <span class="ne">SyntaxWarning</span><span class="p">,</span>
+              <span class="ne">SystemError</span><span class="p">,</span> <span class="ne">SystemExit</span><span class="p">,</span> <span class="ne">TabError</span><span class="p">,</span> <span class="n">TimeoutError</span><span class="p">,</span>
+              <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">UnboundLocalError</span><span class="p">,</span>
+              <span class="ne">UnicodeDecodeError</span><span class="p">,</span> <span class="ne">UnicodeEncodeError</span><span class="p">,</span> <span class="ne">UnicodeError</span><span class="p">,</span>
+              <span class="ne">UnicodeTranslateError</span><span class="p">,</span> <span class="ne">UnicodeWarning</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">,</span>
+              <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">Warning</span><span class="p">,</span> <span class="ne">ZeroDivisionError</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span>
+              <span class="nb">property</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="nb">enumerate</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">super</span><span class="p">,</span> <span class="nb">filter</span><span class="p">,</span> <span class="nb">reversed</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span>
+              <span class="nb">staticmethod</span><span class="p">,</span> <span class="nb">classmethod</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span>
+              <span class="n">types</span><span class="o">.</span><span class="n">BuiltinFunctionType</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span>
+              <span class="nb">complex</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GetSetDescriptorType</span><span class="p">,</span>
+              <span class="n">types</span><span class="o">.</span><span class="n">CodeType</span><span class="p">}</span>
+
+<span class="n">inst_ver</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># instance</span>
+<span class="n">inst_nover</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="nb">any</span><span class="p">),</span> <span class="nb">bytearray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span>
+              <span class="nb">bytes</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">NotImplemented</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span>
+              <span class="n">types</span><span class="o">.</span><span class="n">GetSetDescriptorType</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">types</span><span class="o">.</span><span class="n">CodeType</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span>
+              <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">}</span>
+
+<span class="n">noise</span> <span class="o">=</span> <span class="bp">False</span>
+
+
+<span class="k">def</span> <span class="nf">debug</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">noise</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="bp">True</span>
+
+
+<span class="k">def</span> <span class="nf">printer</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">noise</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">check_matcher</span><span class="p">(</span><span class="n">matcher</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">matcher</span><span class="p">,</span> <span class="n">Matcher</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">matcher</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">matcher</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">AnyOf</span><span class="p">(</span><span class="n">matcher</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">matcher</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">Shared</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Matchtype</span><span class="p">(</span><span class="n">matcher</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Matcher"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Matcher">[docs]</a><span class="k">class</span> <span class="nc">Matcher</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for matchers. You should inherit from this when creating</span>
+<span class="sd">    custom matchers.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        class MyMatcher(Matcher):</span>
+<span class="sd">            def matches(self, obj):</span>
+<span class="sd">                return obj == magic_global_obj</span>
+
+<span class="sd">            def __repr__(self):</span>
+<span class="sd">                return &quot;{}()&quot;.format(self.__class__.__name__)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="Matcher.matches"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Matcher.matches">[docs]</a>    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">pass</span>
+</div>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="Matchtype"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Matchtype">[docs]</a><span class="k">class</span> <span class="nc">Matchtype</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Matcher which returns True when type(obj) == type given in constructer.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        m = Matchtype(str)</span>
+<span class="sd">        m.matches(&quot;a&quot;)  # True</span>
+<span class="sd">        m.matches(1)  # False</span>
+
+<span class="sd">    Shortcut: `settypeverify(A, a=str)` is equivelent to</span>
+<span class="sd">    `settypeverify(A, a=Matchtype(str))`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">type_</span>
+
+<div class="viewcode-block" id="Matchtype.matches"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Matchtype.matches">[docs]</a>    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="ow">is</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">getsattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="s">&quot;__class__&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">type</span> \
+            <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;{}({})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Shared"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Shared">[docs]</a><span class="k">class</span> <span class="nc">Shared</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Matcher which returns True when obj == obj given in constructer.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        def f():</span>
+<span class="sd">            pass</span>
+<span class="sd">        m = Shared(f)</span>
+<span class="sd">        m.matches(f)  # True</span>
+<span class="sd">        m.matches(g)  # False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span>
+
+<div class="viewcode-block" id="Shared.matches"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Shared.matches">[docs]</a>    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">printer</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="s">&quot;&quot;</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="s">&quot;id: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s">&quot;{}({})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Sequence"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Sequence">[docs]</a><span class="k">class</span> <span class="nc">Sequence</span><span class="p">(</span><span class="n">Matchtype</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Matcher which returns True when a sequence type matches `type_matcher`</span>
+<span class="sd">    and all the items match `item_matcher`.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        s = Sequence(list, str)</span>
+<span class="sd">        s.matches([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])  # True</span>
+<span class="sd">        s.matches([&quot;a&quot;, &quot;b&quot;, 1])  # False</span>
+<span class="sd">        s.matches((&quot;a&quot;, &quot;b&quot;))  # False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_matcher</span><span class="p">,</span> <span class="n">item_matcher</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type_matcher</span> <span class="o">=</span> <span class="n">check_matcher</span><span class="p">(</span><span class="n">type_matcher</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item_matcher</span> <span class="o">=</span> <span class="n">check_matcher</span><span class="p">(</span><span class="n">item_matcher</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Sequence.matches"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Sequence.matches">[docs]</a>    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_matcher</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_matcher</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;{}({}({}))&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_matcher</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">item_matcher</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Mapping"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Mapping">[docs]</a><span class="k">class</span> <span class="nc">Mapping</span><span class="p">(</span><span class="n">Matchtype</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Matcher which returns True when a sequence type matches `type_matcher`</span>
+<span class="sd">    and all the keys match `key_matcher` and the values match `value_matcher`.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        s = Mapping(dict, str, int)</span>
+<span class="sd">        s.matches({&quot;a&quot;: 1, &quot;b&quot;: 2, &quot;c&quot;: 3})  # True</span>
+<span class="sd">        s.matches({&quot;a&quot;: 1, &quot;b&quot;: 2, 1: 3})  # False</span>
+<span class="sd">        s.matches((&quot;a&quot;, &quot;b&quot;))  # False</span>
+<span class="sd">        s.matches({&quot;a&quot;: 1, &quot;b&quot;: 2, &quot;c&quot;: &quot;d&quot;})  # False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_matcher</span><span class="p">,</span> <span class="n">key_matcher</span><span class="p">,</span> <span class="n">value_matcher</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type_matcher</span> <span class="o">=</span> <span class="n">check_matcher</span><span class="p">(</span><span class="n">type_matcher</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key_matcher</span> <span class="o">=</span> <span class="n">check_matcher</span><span class="p">(</span><span class="n">key_matcher</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_matcher</span> <span class="o">=</span> <span class="n">check_matcher</span><span class="p">(</span><span class="n">value_matcher</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Mapping.matches"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Mapping.matches">[docs]</a>    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_matcher</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_matcher</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+               <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_matcher</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">val</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;{}({}({}: {}))&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">type_matcher</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_matcher</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">value_matcher</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Any"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Any">[docs]</a><span class="k">class</span> <span class="nc">Any</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Matcher which returns True for anything.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        a = Any()</span>
+<span class="sd">        a.matches({&quot;a&quot;: 1, &quot;b&quot;: 2, &quot;c&quot;: 3})  # True</span>
+<span class="sd">        a.matches([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])  # True</span>
+<span class="sd">        a.matches(False)  # True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Any.matches"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.Any.matches">[docs]</a>    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;{}()&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="AnyOf"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.AnyOf">[docs]</a><span class="k">class</span> <span class="nc">AnyOf</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Matcher which returns True if any of the matchers given in the</span>
+<span class="sd">    constructed match.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        a = AnyOf((dict, list))</span>
+<span class="sd">        a.matches({&quot;a&quot;: 1, &quot;b&quot;: 2, &quot;c&quot;: 3})  # True</span>
+<span class="sd">        a.matches([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])  # True</span>
+<span class="sd">        a.matches({False, True})  # False</span>
+
+<span class="sd">    Shortcut: A tuple of matchers is equivalent to this type</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matchers</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matchers</span> <span class="o">=</span> <span class="p">[</span><span class="n">check_matcher</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matchers</span><span class="p">]</span>
+
+<div class="viewcode-block" id="AnyOf.matches"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.AnyOf.matches">[docs]</a>    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">matchers</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;{}{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">matchers</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="AllOf"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.AllOf">[docs]</a><span class="k">class</span> <span class="nc">AllOf</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Matcher which returns True if all of the matchers given in the</span>
+<span class="sd">    constructed match.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        a = AllOf((dict, Any(), Mapping(dict, str, int)))</span>
+<span class="sd">        a.matches({&quot;a&quot;: 1, &quot;b&quot;: 2, &quot;c&quot;: 3})  # True</span>
+<span class="sd">        a.matches({&quot;a&quot;: 1, &quot;b&quot;: 2, 1: 3})  # False</span>
+<span class="sd">        a.matches((&quot;a&quot;, &quot;b&quot;))  # False</span>
+<span class="sd">        a.matches({&quot;a&quot;: 1, &quot;b&quot;: 2, &quot;c&quot;: &quot;d&quot;})  # False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matchers</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matchers</span> <span class="o">=</span> <span class="p">[</span><span class="n">check_matcher</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matchers</span><span class="p">]</span>
+
+<div class="viewcode-block" id="AllOf.matches"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.AllOf.matches">[docs]</a>    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">matchers</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;{}{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">matchers</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="setinstverify"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.setinstverify">[docs]</a><span class="k">def</span> <span class="nf">setinstverify</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="o">**</span><span class="n">verify_data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds verification data for an instance of type for later use by</span>
+<span class="sd">    :func:`verifyobj`.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        setinstverify(WierdObj, __weakref__=None, a=str, b=(int, dict))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">verify_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">check_matcher</span><span class="p">(</span><span class="n">matcher</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">matcher</span> <span class="ow">in</span> <span class="n">verify_data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">inst_ver</span><span class="p">[</span><span class="nb">type</span><span class="p">]</span> <span class="o">=</span> <span class="n">verify_data</span>
+
+</div>
+<div class="viewcode-block" id="settypeverify"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.settypeverify">[docs]</a><span class="k">def</span> <span class="nf">settypeverify</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="o">**</span><span class="n">verify_data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds verification data for a type for later use by :func:`verifyobj`.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        settypeverify(WierdObj, a=int, __module__=str, __doc__=(None, str),</span>
+<span class="sd">                      __init__=Shared(WierdObj.__init__),</span>
+<span class="sd">                      __weakref__=Shared(WierdObj.__weakref__),</span>
+<span class="sd">                      __dict__=Shared(WierdObj.__dict__))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">verify_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">check_matcher</span><span class="p">(</span><span class="n">matcher</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">matcher</span> <span class="ow">in</span> <span class="n">verify_data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">type_ver</span><span class="p">[</span><span class="nb">type</span><span class="p">]</span> <span class="o">=</span> <span class="n">verify_data</span>
+
+</div>
+<div class="viewcode-block" id="setargsverify"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.setargsverify">[docs]</a><span class="k">def</span> <span class="nf">setargsverify</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">verify_data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds verification data for a function&#39;s args for later use by</span>
+<span class="sd">    :func:`verifyargs`. This function is best used though</span>
+<span class="sd">    :func:`argschecker` or :func:`argschecker_ann`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">verify_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">check_matcher</span><span class="p">(</span><span class="n">matcher</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">matcher</span> <span class="ow">in</span> <span class="n">verify_data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">func_args_ver</span><span class="p">[</span><span class="n">func</span><span class="p">]</span> <span class="o">=</span> <span class="n">verify_data</span>
+</div>
+<span class="n">checked_func_names</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;arg_checked_func&quot;</span><span class="p">,</span> <span class="s">&quot;check_builtins_wrapper&quot;</span><span class="p">,</span>
+                      <span class="s">&quot;type_checker_wrapper&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="argschecker"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.argschecker">[docs]</a><span class="k">def</span> <span class="nf">argschecker</span><span class="p">(</span><span class="o">**</span><span class="n">verify_data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks the types of all arguments against what is expected, and raises</span>
+<span class="sd">    :class:`RuntimeError` if they do not. It can be used to ensure no malicious</span>
+<span class="sd">    types can enter a function that lifts the sandbox. It takes the matchers in</span>
+<span class="sd">    kwarg form. `__args__` can be used to check `*args` and `__kwargs__` can be</span>
+<span class="sd">    used to check `**kwargs`.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        @argschecker(self=Any(), a=(int, dict, None), b=str, c=str,</span>
+<span class="sd">            __args__=Sequence(tuple, str))</span>
+<span class="sd">        def f(self, a, b, *args, c=&quot;&quot;):</span>
+<span class="sd">            return str(a) + b + c</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">savkw</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="n">setargsverify</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">verify_data</span><span class="p">)</span>
+        <span class="n">args_names</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getfullargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">arg_checked_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">args_names</span><span class="p">):</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">kwargs_cpy</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_names</span><span class="p">):</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="n">kwargs_cpy</span><span class="p">[</span><span class="s">&quot;__args__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">args_names</span><span class="p">):])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">()</span>
+
+            <span class="n">v</span> <span class="o">=</span> <span class="n">verifyargs</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">kwargs_cpy</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;Argument verification&quot;</span>
+                                   <span class="s">&quot; of arg &#39;{1}&#39; failed: {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">v</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arg_checked_func</span>
+    <span class="k">return</span> <span class="n">savkw</span>
+
+</div>
+<div class="viewcode-block" id="argschecker_ann"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.argschecker_ann">[docs]</a><span class="k">def</span> <span class="nf">argschecker_ann</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Same usage as :func:`argschecker`, but takes the types in annotation form.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        @argschecker_ann</span>
+<span class="sd">        def f_ann(self: Any(), a: (int, dict, list, None), b: str,</span>
+<span class="sd">           *__args__: Sequence(tuple, str), c: str=&quot;&quot;):</span>
+<span class="sd">            return str(a) + b + c</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">setargsverify</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">func</span><span class="o">.</span><span class="n">__annotations__</span><span class="p">)</span>
+    <span class="n">args_names</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getfullargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">arg_checked_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">args_names</span><span class="p">):</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">kwargs_cpy</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_names</span><span class="p">):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">kwargs_cpy</span><span class="p">[</span><span class="s">&quot;__args__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">args_names</span><span class="p">):])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">()</span>
+
+        <span class="n">v</span> <span class="o">=</span> <span class="n">verifyargs</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">kwargs_cpy</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;Argument verification&quot;</span>
+                               <span class="s">&quot; of arg &#39;{1}&#39; failed: {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">v</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arg_checked_func</span>
+
+</div>
+<span class="k">def</span> <span class="nf">verifyinst</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">in</span> <span class="n">inst_nover</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span>
+    <span class="n">inst_verify_data</span> <span class="o">=</span> <span class="n">inst_ver</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)]</span>
+    <span class="c"># check instance</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;key in __dict__ is not of type str but {}{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">),</span> <span class="n">obj</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">inst_verify_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">inst_verify_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s">&quot;key &#39;{}&#39; has failed verification&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">obj</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">verifyobj</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">v</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;key &#39;{}&#39; not in verify data&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">obj</span>
+    <span class="c"># check getset_descriptors, good for things like functions</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&quot;__dict__&quot;</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GetSetDescriptorType</span><span class="p">,</span>
+                          <span class="n">types</span><span class="o">.</span><span class="n">MemberDescriptorType</span><span class="p">):</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">inst_verify_data</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">inst_verify_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="s">&quot;key &#39;{}&#39; has failed verification&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">obj</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">verifyobj</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">v</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s">&quot;key &#39;{}&#39; not in verify data&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">obj</span>
+
+
+<span class="k">def</span> <span class="nf">verifytype</span><span class="p">(</span><span class="n">typ</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">typ</span> <span class="ow">in</span> <span class="n">type_nover</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">type_verify_data</span> <span class="o">=</span> <span class="n">type_ver</span><span class="p">[</span><span class="n">typ</span><span class="p">]</span>
+    <span class="c"># check instance</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">typ</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&quot;__dict__&quot;</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;key in __dict__ is not of type str&quot;</span><span class="p">,</span> <span class="n">typ</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GetSetDescriptorType</span><span class="p">,</span>
+                          <span class="n">types</span><span class="o">.</span><span class="n">MemberDescriptorType</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">type_verify_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">type_verify_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s">&quot;key &#39;{}&#39; has failed verification&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">typ</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">verifyobj</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">v</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;key &#39;{}&#39; not in verify data&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">typ</span>
+    <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">typ</span><span class="o">.</span><span class="n">__bases__</span><span class="p">:</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">verifytype</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">v</span>
+
+
+<div class="viewcode-block" id="verifyobj"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.verifyobj">[docs]</a><span class="k">def</span> <span class="nf">verifyobj</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Verifies obj using verification information stored by :func:`setinstverify`</span>
+<span class="sd">    and :func:`settypeverify`. Returns None if the object is OK, otherwise</span>
+<span class="sd">    returns a tuple of (reason, subojb) where subobj is the attr of obj that</span>
+<span class="sd">    failed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">printer</span><span class="p">(</span><span class="s">&quot;Verifing&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">type</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">verifytype</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">verifyinst</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">or</span> <span class="n">verifytype</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="verifyargs"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.verifyargs">[docs]</a><span class="k">def</span> <span class="nf">verifyargs</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Verifies the args using verification information stored by</span>
+<span class="sd">    :func:`setargsverify`. This function is best used though</span>
+<span class="sd">    :func:`argschecker` or :func:`argschecker_ann`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+    <span class="n">verdat</span> <span class="o">=</span> <span class="n">func_args_ver</span><span class="p">[</span><span class="n">func</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;key in args is not of type str&quot;</span><span class="p">,</span> <span class="n">key</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">verdat</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">verdat</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s">&quot;key &#39;{}&#39; has failed verification&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">key</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">verifyobj</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">v</span><span class="p">,</span> <span class="n">key</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&quot;__kwargs__&quot;</span> <span class="ow">in</span> <span class="n">verdat</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">verdat</span><span class="p">[</span><span class="s">&quot;__kwargs__&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="s">&quot;key &#39;{}&#39; has failed verification&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">key</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">verifyobj</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">v</span><span class="p">,</span> <span class="n">key</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s">&quot;key &#39;{}&#39; not in verify data&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">key</span>
+
+</div>
+<div class="viewcode-block" id="generatetypeverify"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.generatetypeverify">[docs]</a><span class="k">def</span> <span class="nf">generatetypeverify</span><span class="p">(</span><span class="n">typ</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attempts to generate and set data for :func:`verifyobj`. If the type</span>
+<span class="sd">    can change (e.g. class variables that can change), it is best to use</span>
+<span class="sd">    :func:`settypeverify`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vd</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">typ</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">vd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Shared</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">settypeverify</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="o">**</span><span class="n">vd</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vd</span>
+
+</div>
+<div class="viewcode-block" id="generateinstverify"><a class="viewcode-back" href="../../sandypython/verify.html#sandypython.verify.generateinstverify">[docs]</a><span class="k">def</span> <span class="nf">generateinstverify</span><span class="p">(</span><span class="n">example</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attempts to generate and set data for :func:`verifyobj`. If the instance</span>
+<span class="sd">    is not simple, it is best to use :func:`setinstverify`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vd</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">example</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">vd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">check_matcher</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">(</span><span class="n">example</span><span class="p">)</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GetSetDescriptorType</span><span class="p">,</span>
+                           <span class="n">types</span><span class="o">.</span><span class="n">MemberDescriptorType</span><span class="p">):</span>
+            <span class="n">vd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">check_matcher</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="n">example</span><span class="p">)))</span>
+    <span class="n">setinstverify</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">example</span><span class="p">),</span> <span class="o">**</span><span class="n">vd</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vd</span>
+
+</div>
+<span class="n">dictstrany</span> <span class="o">=</span> <span class="n">Mapping</span><span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">())</span>
+
+<span class="n">setinstverify</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">,</span> <span class="n">__name__</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">__module__</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+              <span class="n">__qualname__</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">__code__</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">CodeType</span><span class="p">,</span>
+              <span class="n">__kwdefaults__</span><span class="o">=</span><span class="p">(</span><span class="n">dictstrany</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+              <span class="n">__annotations__</span><span class="o">=</span><span class="n">dictstrany</span><span class="p">,</span> <span class="n">__defaults__</span><span class="o">=</span><span class="p">(</span><span class="n">dictstrany</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+              <span class="n">__doc__</span><span class="o">=</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="n">__closure__</span><span class="o">=</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+              <span class="n">__globals__</span><span class="o">=</span><span class="n">dictstrany</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Matthew Joyce.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

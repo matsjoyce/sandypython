@@ -1,0 +1,360 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sandypython.verify &mdash; SandyPython 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="top" title="SandyPython 1.0.0 documentation" href="../index.html" />
+    <link rel="up" title="sandypython" href="../sandypython.html" />
+    <link rel="prev" title="sandypython.importing" href="importing.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="importing.html" title="sandypython.importing"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../sandypython.html" accesskey="U">sandypython</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-sandypython.verify">
+<span id="sandypython-verify"></span><h1>sandypython.verify<a class="headerlink" href="#module-sandypython.verify" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="sandypython.verify.Matcher">
+<em class="property">class </em><tt class="descclassname">sandypython.verify.</tt><tt class="descname">Matcher</tt><a class="reference internal" href="../_modules/sandypython/verify.html#Matcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Matcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for matchers. You should inherit from this when creating
+custom matchers.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyMatcher</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span> <span class="o">==</span> <span class="n">magic_global_obj</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;{}()&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="sandypython.verify.Matcher.matches">
+<tt class="descname">matches</tt><big>(</big><em>obj</em><big>)</big> &rarr; bool<a class="reference internal" href="../_modules/sandypython/verify.html#Matcher.matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Matcher.matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sandypython.verify.Matchtype">
+<em class="property">class </em><tt class="descclassname">sandypython.verify.</tt><tt class="descname">Matchtype</tt><big>(</big><em>type_</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#Matchtype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Matchtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matcher which returns True when type(obj) == type given in constructer.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">m</span> <span class="o">=</span> <span class="n">Matchtype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">)</span>  <span class="c"># True</span>
+<span class="n">m</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c"># False</span>
+</pre></div>
+</div>
+<p>Shortcut: <cite>settypeverify(A, a=str)</cite> is equivelent to
+<cite>settypeverify(A, a=Matchtype(str))</cite></p>
+<dl class="method">
+<dt id="sandypython.verify.Matchtype.matches">
+<tt class="descname">matches</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#Matchtype.matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Matchtype.matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sandypython.verify.Shared">
+<em class="property">class </em><tt class="descclassname">sandypython.verify.</tt><tt class="descname">Shared</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#Shared"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Shared" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matcher which returns True when obj == obj given in constructer.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">f</span><span class="p">():</span>
+    <span class="k">pass</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">Shared</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>  <span class="c"># True</span>
+<span class="n">m</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>  <span class="c"># False</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="sandypython.verify.Shared.matches">
+<tt class="descname">matches</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#Shared.matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Shared.matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sandypython.verify.Sequence">
+<em class="property">class </em><tt class="descclassname">sandypython.verify.</tt><tt class="descname">Sequence</tt><big>(</big><em>type_matcher</em>, <em>item_matcher</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#Sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matcher which returns True when a sequence type matches <cite>type_matcher</cite>
+and all the items match <cite>item_matcher</cite>.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">matches</span><span class="p">([</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">])</span>  <span class="c"># True</span>
+<span class="n">s</span><span class="o">.</span><span class="n">matches</span><span class="p">([</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c"># False</span>
+<span class="n">s</span><span class="o">.</span><span class="n">matches</span><span class="p">((</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">))</span>  <span class="c"># False</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="sandypython.verify.Sequence.matches">
+<tt class="descname">matches</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#Sequence.matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Sequence.matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sandypython.verify.Mapping">
+<em class="property">class </em><tt class="descclassname">sandypython.verify.</tt><tt class="descname">Mapping</tt><big>(</big><em>type_matcher</em>, <em>key_matcher</em>, <em>value_matcher</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#Mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matcher which returns True when a sequence type matches <cite>type_matcher</cite>
+and all the keys match <cite>key_matcher</cite> and the values match <cite>value_matcher</cite>.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">Mapping</span><span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">matches</span><span class="p">({</span><span class="s">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>  <span class="c"># True</span>
+<span class="n">s</span><span class="o">.</span><span class="n">matches</span><span class="p">({</span><span class="s">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>  <span class="c"># False</span>
+<span class="n">s</span><span class="o">.</span><span class="n">matches</span><span class="p">((</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">))</span>  <span class="c"># False</span>
+<span class="n">s</span><span class="o">.</span><span class="n">matches</span><span class="p">({</span><span class="s">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">:</span> <span class="s">&quot;d&quot;</span><span class="p">})</span>  <span class="c"># False</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="sandypython.verify.Mapping.matches">
+<tt class="descname">matches</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#Mapping.matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Mapping.matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sandypython.verify.Any">
+<em class="property">class </em><tt class="descclassname">sandypython.verify.</tt><tt class="descname">Any</tt><a class="reference internal" href="../_modules/sandypython/verify.html#Any"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Any" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matcher which returns True for anything.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">Any</span><span class="p">()</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">({</span><span class="s">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>  <span class="c"># True</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">([</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">])</span>  <span class="c"># True</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># True</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="sandypython.verify.Any.matches">
+<tt class="descname">matches</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#Any.matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.Any.matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sandypython.verify.AnyOf">
+<em class="property">class </em><tt class="descclassname">sandypython.verify.</tt><tt class="descname">AnyOf</tt><big>(</big><em>matchers</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#AnyOf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.AnyOf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matcher which returns True if any of the matchers given in the
+constructed match.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">AnyOf</span><span class="p">((</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">({</span><span class="s">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>  <span class="c"># True</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">([</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">])</span>  <span class="c"># True</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">({</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">})</span>  <span class="c"># False</span>
+</pre></div>
+</div>
+<p>Shortcut: A tuple of matchers is equivalent to this type</p>
+<dl class="method">
+<dt id="sandypython.verify.AnyOf.matches">
+<tt class="descname">matches</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#AnyOf.matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.AnyOf.matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sandypython.verify.AllOf">
+<em class="property">class </em><tt class="descclassname">sandypython.verify.</tt><tt class="descname">AllOf</tt><big>(</big><em>matchers</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#AllOf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.AllOf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matcher which returns True if all of the matchers given in the
+constructed match.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">AllOf</span><span class="p">((</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">(),</span> <span class="n">Mapping</span><span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)))</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">({</span><span class="s">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>  <span class="c"># True</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">({</span><span class="s">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>  <span class="c"># False</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">((</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">))</span>  <span class="c"># False</span>
+<span class="n">a</span><span class="o">.</span><span class="n">matches</span><span class="p">({</span><span class="s">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">:</span> <span class="s">&quot;d&quot;</span><span class="p">})</span>  <span class="c"># False</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="sandypython.verify.AllOf.matches">
+<tt class="descname">matches</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#AllOf.matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.AllOf.matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.verify.setinstverify">
+<tt class="descclassname">sandypython.verify.</tt><tt class="descname">setinstverify</tt><big>(</big><em>type</em>, <em>**verify_data</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#setinstverify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.setinstverify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds verification data for an instance of type for later use by
+<a class="reference internal" href="#sandypython.verify.verifyobj" title="sandypython.verify.verifyobj"><tt class="xref py py-func docutils literal"><span class="pre">verifyobj()</span></tt></a>.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">setinstverify</span><span class="p">(</span><span class="n">WierdObj</span><span class="p">,</span> <span class="n">__weakref__</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.verify.settypeverify">
+<tt class="descclassname">sandypython.verify.</tt><tt class="descname">settypeverify</tt><big>(</big><em>type</em>, <em>**verify_data</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#settypeverify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.settypeverify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds verification data for a type for later use by <a class="reference internal" href="#sandypython.verify.verifyobj" title="sandypython.verify.verifyobj"><tt class="xref py py-func docutils literal"><span class="pre">verifyobj()</span></tt></a>.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">settypeverify</span><span class="p">(</span><span class="n">WierdObj</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">__module__</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">__doc__</span><span class="o">=</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+              <span class="n">__init__</span><span class="o">=</span><span class="n">Shared</span><span class="p">(</span><span class="n">WierdObj</span><span class="o">.</span><span class="n">__init__</span><span class="p">),</span>
+              <span class="n">__weakref__</span><span class="o">=</span><span class="n">Shared</span><span class="p">(</span><span class="n">WierdObj</span><span class="o">.</span><span class="n">__weakref__</span><span class="p">),</span>
+              <span class="n">__dict__</span><span class="o">=</span><span class="n">Shared</span><span class="p">(</span><span class="n">WierdObj</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.verify.setargsverify">
+<tt class="descclassname">sandypython.verify.</tt><tt class="descname">setargsverify</tt><big>(</big><em>func</em>, <em>**verify_data</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#setargsverify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.setargsverify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds verification data for a function&#8217;s args for later use by
+<a class="reference internal" href="#sandypython.verify.verifyargs" title="sandypython.verify.verifyargs"><tt class="xref py py-func docutils literal"><span class="pre">verifyargs()</span></tt></a>. This function is best used though
+<a class="reference internal" href="#sandypython.verify.argschecker" title="sandypython.verify.argschecker"><tt class="xref py py-func docutils literal"><span class="pre">argschecker()</span></tt></a> or <a class="reference internal" href="#sandypython.verify.argschecker_ann" title="sandypython.verify.argschecker_ann"><tt class="xref py py-func docutils literal"><span class="pre">argschecker_ann()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.verify.argschecker">
+<tt class="descclassname">sandypython.verify.</tt><tt class="descname">argschecker</tt><big>(</big><em>**verify_data</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#argschecker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.argschecker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the types of all arguments against what is expected, and raises
+<tt class="xref py py-class docutils literal"><span class="pre">RuntimeError</span></tt> if they do not. It can be used to ensure no malicious
+types can enter a function that lifts the sandbox. It takes the matchers in
+kwarg form. <cite>__args__</cite> can be used to check <cite>*args</cite> and <cite>__kwargs__</cite> can be
+used to check <cite>**kwargs</cite>.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@argschecker</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="n">Any</span><span class="p">(),</span> <span class="n">a</span><span class="o">=</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="n">b</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">__args__</span><span class="o">=</span><span class="n">Sequence</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">str</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.verify.argschecker_ann">
+<tt class="descclassname">sandypython.verify.</tt><tt class="descname">argschecker_ann</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#argschecker_ann"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.argschecker_ann" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same usage as <a class="reference internal" href="#sandypython.verify.argschecker" title="sandypython.verify.argschecker"><tt class="xref py py-func docutils literal"><span class="pre">argschecker()</span></tt></a>, but takes the types in annotation form.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@argschecker_ann</span>
+<span class="k">def</span> <span class="nf">f_ann</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">(),</span> <span class="n">a</span><span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="n">b</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+   <span class="o">*</span><span class="n">__args__</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="n">c</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.verify.verifyobj">
+<tt class="descclassname">sandypython.verify.</tt><tt class="descname">verifyobj</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#verifyobj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.verifyobj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verifies obj using verification information stored by <a class="reference internal" href="#sandypython.verify.setinstverify" title="sandypython.verify.setinstverify"><tt class="xref py py-func docutils literal"><span class="pre">setinstverify()</span></tt></a>
+and <a class="reference internal" href="#sandypython.verify.settypeverify" title="sandypython.verify.settypeverify"><tt class="xref py py-func docutils literal"><span class="pre">settypeverify()</span></tt></a>. Returns None if the object is OK, otherwise
+returns a tuple of (reason, subojb) where subobj is the attr of obj that
+failed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.verify.verifyargs">
+<tt class="descclassname">sandypython.verify.</tt><tt class="descname">verifyargs</tt><big>(</big><em>func</em>, <em>args</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#verifyargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.verifyargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verifies the args using verification information stored by
+<a class="reference internal" href="#sandypython.verify.setargsverify" title="sandypython.verify.setargsverify"><tt class="xref py py-func docutils literal"><span class="pre">setargsverify()</span></tt></a>. This function is best used though
+<a class="reference internal" href="#sandypython.verify.argschecker" title="sandypython.verify.argschecker"><tt class="xref py py-func docutils literal"><span class="pre">argschecker()</span></tt></a> or <a class="reference internal" href="#sandypython.verify.argschecker_ann" title="sandypython.verify.argschecker_ann"><tt class="xref py py-func docutils literal"><span class="pre">argschecker_ann()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.verify.generateinstverify">
+<tt class="descclassname">sandypython.verify.</tt><tt class="descname">generateinstverify</tt><big>(</big><em>example</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#generateinstverify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.generateinstverify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to generate and set data for <a class="reference internal" href="#sandypython.verify.verifyobj" title="sandypython.verify.verifyobj"><tt class="xref py py-func docutils literal"><span class="pre">verifyobj()</span></tt></a>. If the instance
+is not simple, it is best to use <a class="reference internal" href="#sandypython.verify.setinstverify" title="sandypython.verify.setinstverify"><tt class="xref py py-func docutils literal"><span class="pre">setinstverify()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sandypython.verify.generatetypeverify">
+<tt class="descclassname">sandypython.verify.</tt><tt class="descname">generatetypeverify</tt><big>(</big><em>typ</em><big>)</big><a class="reference internal" href="../_modules/sandypython/verify.html#generatetypeverify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sandypython.verify.generatetypeverify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to generate and set data for <a class="reference internal" href="#sandypython.verify.verifyobj" title="sandypython.verify.verifyobj"><tt class="xref py py-func docutils literal"><span class="pre">verifyobj()</span></tt></a>. If the type
+can change (e.g. class variables that can change), it is best to use
+<a class="reference internal" href="#sandypython.verify.settypeverify" title="sandypython.verify.settypeverify"><tt class="xref py py-func docutils literal"><span class="pre">settypeverify()</span></tt></a>.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="importing.html"
+                        title="previous chapter">sandypython.importing</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/sandypython/verify.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="importing.html" title="sandypython.importing"
+             >previous</a> |</li>
+        <li><a href="../index.html">SandyPython 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../sandypython.html" >sandypython</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Matthew Joyce.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

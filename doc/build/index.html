@@ -59,6 +59,8 @@
 <li class="toctree-l2"><a class="reference internal" href="sandypython/utils.html">sandypython.utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sandypython/spec.html">sandypython.spec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sandypython/safe_dill.html">sandypython.safe_dill</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sandypython/importing.html">sandypython.importing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sandypython/verify.html">sandypython.verify</a></li>
 </ul>
 </li>
 </ul>
@@ -86,13 +88,13 @@
 <p>Quick start:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sandypython</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="n">core</span><span class="o">.</span><span class="n">allow_defaults</span><span class="p">()</span>
+<span class="n">core</span><span class="o">.</span><span class="n">add_default_builtins</span><span class="p">()</span>
 
 <span class="k">with</span> <span class="n">utils</span><span class="o">.</span><span class="n">ActivateSandbox</span><span class="p">():</span>
     <span class="n">core</span><span class="o">.</span><span class="n">exec_str</span><span class="p">(</span><span class="n">bad_code</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>For a more complete reference, see the <a class="reference external" href="https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html">https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html</a></p>
+<p>For a more complete reference, see the docs at <a class="reference external" href="https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html">https://rawgit.com/matsjoyce/sandypython/master/doc/build/index.html</a></p>
 </div>
 <div class="section" id="for-those-who-want-a-challenge">
 <h1>For those who want a challenge:<a class="headerlink" href="#for-those-who-want-a-challenge" title="Permalink to this headline">¶</a></h1>
