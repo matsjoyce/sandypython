@@ -41,13 +41,13 @@ type_nover = {type(None), True, False, NotImplemented, ..., ArithmeticError,
               staticmethod, classmethod, frozenset, str, int, bool, range,
               types.BuiltinFunctionType, bytearray, float, bytes, object,
               complex, types.FunctionType, types.GetSetDescriptorType,
-              types.CodeType}
+              types.CodeType, types.ModuleType}
 
 inst_ver = {}  # instance
 inst_nover = {str, int, bool, range, type(any), bytearray, float,
               bytes, object, complex, None, True, False, NotImplemented, ...,
               types.GetSetDescriptorType, type(None), types.CodeType, dict,
-              list, tuple}
+              list, tuple, types.ModuleType}
 
 noise = False
 
@@ -356,6 +356,17 @@ def argschecker(**verify_data):
             if v:
                 raise RuntimeError("Argument verification"
                                    " of arg '{1}' failed: {0}".format(*v))
+            from . import core
+            for i, j in core.exec_globals.items():
+                if type(i) is not str:
+                    raise RuntimeError("Argument verification"
+                                       " of global '{1}' failed: {0}"
+                                       .format(*v))
+                v = verifyobj(j)
+                if v:
+                    raise RuntimeError("Argument verification"
+                                       " of global '{1}' failed: {0}"
+                                       .format(*v))
 
             return func(*args, **kwargs)
         return arg_checked_func
@@ -400,7 +411,7 @@ def verifyinst(obj):
     assert type(obj) is not type
     inst_verify_data = inst_ver[type(obj)]
     # check instance
-    for key, item in obj.__dict__.items():
+    for key, item in getsattr(obj, "__dict__").items():
         if type(key) is not str:
             return "key in __dict__ is not of type str but {}{}".format(
                 type(key), type(key) == str), obj
@@ -413,12 +424,12 @@ def verifyinst(obj):
         else:
             return "key '{}' not in verify data".format(key), obj
     # check getset_descriptors, good for things like functions
-    for key, item in type(obj).__dict__.items():
+    for key, item in getsattr(type(obj), "__dict__").items():
         if key == "__dict__":
             continue
         if type(item) in (types.GetSetDescriptorType,
                           types.MemberDescriptorType):
-            item = item.__get__(obj)
+            item = getsattr(item, "__get__")(obj)
             if key in inst_verify_data:
                 if not inst_verify_data[key].matches(item):
                     return "key '{}' has failed verification".format(key), obj
@@ -434,7 +445,7 @@ def verifytype(typ):
         return
     type_verify_data = type_ver[typ]
     # check instance
-    for key, item in typ.__dict__.items():
+    for key, item in getsattr(typ, "__dict__").items():
         if key == "__dict__":
             continue
         if type(key) is not str:
@@ -450,7 +461,8 @@ def verifytype(typ):
                 return v
         else:
             return "key '{}' not in verify data".format(key), typ
-    for base in typ.__bases__:
+    print(dir(typ))
+    for base in getsattr(typ, "__bases__"):
         v = verifytype(base)
         if v:
             return v
@@ -505,7 +517,7 @@ def generatetypeverify(typ):
     :func:`settypeverify`.
     """
     vd = {}
-    for key, value in typ.__dict__.items():
+    for key, value in getsattr(typ, "__dict__").items():
         vd[key] = Shared(value)
     settypeverify(typ, **vd)
     return vd
@@ -517,12 +529,12 @@ def generateinstverify(example):
     is not simple, it is best to use :func:`setinstverify`.
     """
     vd = {}
-    for key, value in example.__dict__.items():
+    for key, value in getsattr(example, "__dict__").items():
         vd[key] = check_matcher(type(value))
-    for key, value in type(example).__dict__.items():
+    for key, value in getsattr(type(example), "__dict__").items():
         if type(value) in (types.GetSetDescriptorType,
                            types.MemberDescriptorType):
-            vd[key] = check_matcher(type(value.__get__(example)))
+            vd[key] = check_matcher(type(getsattr(value, "__get__")(example)))
     setinstverify(type(example), **vd)
     return vd
 

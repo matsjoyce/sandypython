@@ -1,3 +1,6 @@
+from . import verify
+
+
 class FakeMod:
     def __getattr__(self, name):
         try:
@@ -16,3 +19,8 @@ def make_fake_mod(mod_dict):
             raise AttributeError("Name not in module")
     mod.__getattr__ = getitem
     return mod
+
+
+verify.generatetypeverify(FakeMod)
+verify.setinstverify(FakeMod, __weakref__=None,
+                     __getattr__=type(make_fake_mod))
